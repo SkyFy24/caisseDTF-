@@ -396,7 +396,8 @@
                                         <tr>
                                             <th>Date</th>
                                             <th>Film DTF</th>
-                                            <th>Ventes</th>
+                                            <th>Ventes DTF</th>
+                                            <th>Autres Ventes</th>
                                             <th>Encaissement</th>
                                             <th>Dépenses</th>
                                             <th>Net</th>
@@ -1040,7 +1041,7 @@
             const summary = {};
             const sortedDates = [...new Set(data.map(o => o.date))].sort();
             sortedDates.forEach(date => {
-                summary[date] = { sales: 0, advances: 0, expenses: 0, film: 0 };
+                summary[date] = { sales: 0, advances: 0, expenses: 0, film: 0, salesDTF: 0, salesOther: 0 };
                 data.filter(o => o.date === date).forEach(op => {
                     if (op.type === 'SALE') { 
                         summary[date].sales += op.total; 
@@ -1049,6 +1050,9 @@
                             op.items.forEach(item => {
                                 if (item.type.toUpperCase().includes('DTF')) {
                                     summary[date].film += parseFloat(item.qty) || 0;
+                                    summary[date].salesDTF += item.total;
+                                } else {
+                                    summary[date].salesOther += item.total;
                                 }
                             });
                         }
@@ -1059,7 +1063,7 @@
             Object.keys(summary).sort().reverse().forEach(date => {
                 const s = summary[date];
                 const net = s.advances - s.expenses;
-                dailySummaryList.innerHTML += `<tr><td>${date}</td><td class="fw-bold text-primary">${s.film.toFixed(2)} m</td><td>${s.sales.toLocaleString()} Ar</td><td>${s.advances.toLocaleString()} Ar</td><td>${s.expenses.toLocaleString()} Ar</td><td class="fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${net.toLocaleString()} Ar</td></tr>`;
+                dailySummaryList.innerHTML += `<tr><td>${date}</td><td class="fw-bold text-primary">${s.film.toFixed(2)} m</td><td>${s.salesDTF.toLocaleString()} Ar</td><td>${s.salesOther.toLocaleString()} Ar</td><td>${s.advances.toLocaleString()} Ar</td><td>${s.expenses.toLocaleString()} Ar</td><td class="fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${net.toLocaleString()} Ar</td></tr>`;
             });
         }
 
