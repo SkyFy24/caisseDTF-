@@ -78,6 +78,13 @@
 
     <!-- Conteneur principal (caché à l'impression) -->
     <div id="mainApp">
+        <!-- Badge de synchronisation -->
+        <div id="syncStatus" class="position-fixed top-0 end-0 p-2 no-print" style="z-index: 1050;">
+            <span class="badge bg-warning text-dark shadow-sm" id="syncBadge">
+                <i class="bi bi-arrow-repeat"></i> Connexion au serveur...
+            </span>
+        </div>
+
         <div class="p-4 container-fluid">
             <!-- Bouton pour cacher/montrer les stats -->
             <div class="d-flex justify-content-end mb-2">
@@ -526,13 +533,33 @@
     }
 
     function subscribeRealtime() {
-        if (!supabaseClient) return;
+        if (!supabaseClient) {
+            document.getElementById('syncBadge').className = 'badge bg-secondary';
+            document.getElementById('syncBadge').innerHTML = '<i class="bi bi-cloud-slash"></i> Mode Hors-Ligne';
+            return;
+        }
+        
         supabaseClient
             .channel('schema-db-changes')
             .on('postgres_changes', { event: '*', schema: 'public', table: SUPABASE_TABLE }, payload => {
                 handleRealtimeChange(payload);
             })
-            .subscribe();
+            .subscribe((status) => {
+                const badge = document.getElementById('syncBadge');
+                if (status === 'SUBSCRIBED') {
+                    badge.className = 'badge bg-success shadow-sm';
+                    badge.innerHTML = '<i class="bi bi-cloud-check"></i> Synchronisé en temps réel';
+                    setTimeout(() => { badge.style.opacity = '0.5'; }, 3000);
+                    
+                    // Retour à opacité normale au survol
+                    badge.onmouseenter = () => badge.style.opacity = '1';
+                    badge.onmouseleave = () => badge.style.opacity = '0.5';
+                } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+                    badge.className = 'badge bg-danger shadow-sm';
+                    badge.innerHTML = '<i class="bi bi-cloud-slash"></i> Déconnecté du serveur';
+                    badge.style.opacity = '1';
+                }
+            });
     }
 
     function handleRealtimeChange(payload) {
