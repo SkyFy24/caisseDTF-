@@ -72,6 +72,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Conteneur pour l'impression (caché à l'écran) -->
     <div id="invoiceStub" style="display: none;"></div>
@@ -88,11 +89,14 @@
         <div class="p-4 container-fluid">
             <!-- Bouton pour cacher/montrer les stats -->
             <div class="d-flex justify-content-end mb-2">
-                <button class="btn btn-sm btn-light text-muted border" type="button" data-bs-toggle="collapse" data-bs-target="#statsCollapse" aria-expanded="true" aria-controls="statsCollapse" onclick="const icon = this.querySelector('i'); if(icon.classList.contains('bi-chevron-up')) { icon.classList.replace('bi-chevron-up', 'bi-chevron-down'); } else { icon.classList.replace('bi-chevron-down', 'bi-chevron-up'); }" title="Masquer/Afficher les statistiques">
+                <button class="btn btn-sm btn-light text-muted border" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#statsCollapse" aria-expanded="true" aria-controls="statsCollapse"
+                    onclick="const icon = this.querySelector('i'); if(icon.classList.contains('bi-chevron-up')) { icon.classList.replace('bi-chevron-up', 'bi-chevron-down'); } else { icon.classList.replace('bi-chevron-down', 'bi-chevron-up'); }"
+                    title="Masquer/Afficher les statistiques">
                     <i class="bi bi-chevron-up"></i>
                 </button>
             </div>
-            
+
             <div class="collapse show" id="statsCollapse">
                 <div class="mb-2 row">
                     <div class="col-md-4">
@@ -117,37 +121,44 @@
             </div>
 
             <!-- BLOC DE GESTION DES DATES -->
-<div class="card shadow-sm mb-4 border-0 rounded-4">
-    <div class="card-body bg-light rounded-4 d-flex flex-wrap justify-content-between align-items-center gap-3 p-3 border">
-        
-        <!-- Section : Date de saisie actuelle -->
-        <div class="d-flex align-items-center flex-wrap gap-2">
-            <span class="badge bg-primary text-white p-2 fs-6 rounded-3 shadow-sm">
-                <i class="bi bi-calendar-check me-1"></i> Date de caisse active
-            </span>
-            <div class="input-group input-group-sm shadow-sm" style="width: auto;">
-                <input type="date" id="workingDateInput" class="form-control border-primary text-primary fw-bold" style="cursor: pointer;" onchange="document.getElementById('journalFilterDate').value = this.value; renderAll()">
-                <button class="btn btn-danger text-white fw-bold px-3" onclick="closeJournal()">
-                    <i class="bi bi-lock-fill me-1"></i> Clôturer
-                </button>
-            </div>
-        </div>
+            <div class="card shadow-sm mb-4 border-0 rounded-4">
+                <div
+                    class="card-body bg-light rounded-4 d-flex flex-wrap justify-content-between align-items-center gap-3 p-3 border">
 
-        <!-- Section : Filtre du journal/historique -->
-        <div class="d-flex align-items-center flex-wrap gap-2">
-            <span class="badge bg-secondary text-white p-2 fs-6 rounded-3 shadow-sm">
-                <i class="bi bi-search me-1"></i> Consulter le
-            </span>
-            <div class="input-group input-group-sm shadow-sm" style="width: auto;">
-                <input type="date" id="journalFilterDate" class="form-control border-secondary text-secondary fw-bold" style="cursor: pointer;" onchange="document.getElementById('workingDateInput').value = this.value; renderAll()">
-                <button class="btn btn-outline-secondary fw-bold px-3" onclick="document.getElementById('journalFilterDate').value=''; renderAll()" title="Voir toutes les dates">
-                    <i class="bi bi-arrow-clockwise"></i> Tout voir
-                </button>
-            </div>
-        </div>
+                    <!-- Section : Date de saisie actuelle -->
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <span class="badge bg-primary text-white p-2 fs-6 rounded-3 shadow-sm">
+                            <i class="bi bi-calendar-check me-1"></i> Date de caisse active
+                        </span>
+                        <div class="input-group input-group-sm shadow-sm" style="width: auto;">
+                            <input type="date" id="workingDateInput"
+                                class="form-control border-primary text-primary fw-bold" style="cursor: pointer;"
+                                onchange="document.getElementById('journalFilterDate').value = this.value; renderAll()">
+                            <button class="btn btn-danger text-white fw-bold px-3" onclick="closeJournal()">
+                                <i class="bi bi-lock-fill me-1"></i> Clôturer
+                            </button>
+                        </div>
+                    </div>
 
-    </div>
-</div>
+                    <!-- Section : Filtre du journal/historique -->
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <span class="badge bg-secondary text-white p-2 fs-6 rounded-3 shadow-sm">
+                            <i class="bi bi-search me-1"></i> Consulter le
+                        </span>
+                        <div class="input-group input-group-sm shadow-sm" style="width: auto;">
+                            <input type="date" id="journalFilterDate"
+                                class="form-control border-secondary text-secondary fw-bold" style="cursor: pointer;"
+                                onchange="document.getElementById('workingDateInput').value = this.value; renderAll()">
+                            <button class="btn btn-outline-secondary fw-bold px-3"
+                                onclick="document.getElementById('journalFilterDate').value=''; renderAll()"
+                                title="Voir toutes les dates">
+                                <i class="bi bi-arrow-clockwise"></i> Tout voir
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
 
             <div class="row">
                 <div class="col-xl-4 no-print">
@@ -160,6 +171,8 @@
                                 data-bs-target="#debtTab">Dettes</button></li>
                         <li class="nav-item"><button class="text-primary nav-link" id="tab-facture" data-bs-toggle="tab"
                                 data-bs-target="#factureTab">Facture Dette</button></li>
+                        <li class="nav-item"><button class="text-warning nav-link" id="tab-facture-manuelle" data-bs-toggle="tab"
+                                data-bs-target="#manualInvoiceTab">Facture Manuelle</button></li>
                         <li class="nav-item"><button class="text-success nav-link" id="tab-global" data-bs-toggle="tab"
                                 data-bs-target="#globalTab">Global</button></li>
                         <li class="nav-item"><button class="text-info nav-link" id="tab-mensuel" data-bs-toggle="tab"
@@ -280,7 +293,8 @@
                                 <div class="mb-3">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                                        <input type="text" id="debtSearchInput" class="form-control" placeholder="Rechercher un client..." oninput="renderAll()">
+                                        <input type="text" id="debtSearchInput" class="form-control"
+                                            placeholder="Rechercher un client..." oninput="renderAll()">
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -313,12 +327,15 @@
                                 <div class="bg-light mb-3 p-2 border rounded" id="debtInfoDisplay"
                                     style="display:none;">
                                     <div class="d-flex justify-content-between"><small>Total de la commande:</small>
-                                        <small><b id="diTotal">0</b> Ar</small></div>
+                                        <small><b id="diTotal">0</b> Ar</small>
+                                    </div>
                                     <div class="d-flex justify-content-between"><small>Déjà payé (Avance):</small>
-                                        <small><b id="diAdvance">0</b> Ar</small></div>
+                                        <small><b id="diAdvance">0</b> Ar</small>
+                                    </div>
                                     <div class="d-flex justify-content-between mt-1 pt-1 border-top text-danger">
                                         <small><b>Reste à payer actuel:</b></small> <small><b id="diReste">0</b>
-                                            Ar</small></div>
+                                            Ar</small>
+                                    </div>
                                     <div id="diItemsList" class="mt-2 pt-2 border-top text-muted small"></div>
                                 </div>
 
@@ -330,7 +347,8 @@
 
                                 <div class="mb-3">
                                     <label class="mb-1 small fw-bold">3. MOYEN DE PAIEMENT</label>
-                                    <select id="debtPaymentMethod" class="form-select-sm form-select" onchange="toggleDebtMvolaField()">
+                                    <select id="debtPaymentMethod" class="form-select-sm form-select"
+                                        onchange="toggleDebtMvolaField()">
                                         <option value="Cash">💶 Espèces (Cash)</option>
                                         <option value="Mvola">📱 Mvola</option>
                                     </select>
@@ -338,7 +356,8 @@
 
                                 <div class="mb-3" id="debtMvolaNameContainer" style="display:none;">
                                     <label class="small fw-bold text-warning">NOM DU COMPTE MVOLA</label>
-                                    <input type="text" id="debtMvolaName" class="form-control form-control-sm border-warning" placeholder="Nom ou numéro">
+                                    <input type="text" id="debtMvolaName"
+                                        class="form-control form-control-sm border-warning" placeholder="Nom ou numéro">
                                 </div>
 
                                 <button class="mt-2 w-100 btn btn-primary btn-sm fw-bold"
@@ -347,12 +366,95 @@
                             </div>
                         </div>
 
+                        <!-- ONGLET: FACTURE MANUELLE DIRECTE (SANS DEPENDANCE) -->
+                        <div class="tab-pane fade" id="manualInvoiceTab">
+                            <div class="p-3 border-warning card">
+                                <h6 class="mb-3 text-warning fw-bold"><i class="bi bi-receipt-cutoff"></i> Facture Manuelle Directe</h6>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">CLIENT</label>
+                                    <input type="text" id="manualClient" class="form-control form-control-sm"
+                                        placeholder="Nom du client" value="Client Passant">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">DATE DE LA FACTURE</label>
+                                    <input type="date" id="manualDate" class="form-control form-control-sm">
+                                </div>
+                                <div class="bg-light mb-3 p-2 border rounded row g-2">
+                                    <div class="col-6">
+                                        <label class="small fw-bold">PRODUIT</label>
+                                        <input list="manualItemTypesList" id="manualItemType" class="form-control form-control-sm"
+                                            placeholder="Nom du produit" value="Impression DTF"
+                                            onchange="updateManualDefaultPrice()">
+                                        <datalist id="manualItemTypesList">
+                                            <option value="Impression DTF">
+                                            <option value="Conception">
+                                            <option value="Textile / Support">
+                                            <option value="Autre">
+                                        </datalist>
+                                    </div>
+                                    <div class="col-3">
+                                        <label class="small fw-bold">QTE</label>
+                                        <input type="number" id="manualItemQty" class="form-control form-control-sm" value="1"
+                                            step="0.1">
+                                    </div>
+                                    <div class="col-3">
+                                        <label class="small fw-bold">PRIX</label>
+                                        <input type="number" id="manualItemPrice" class="form-control form-control-sm"
+                                            value="18000" step="any">
+                                    </div>
+                                    <button class="mt-2 btn btn-sm btn-warning text-dark fw-bold" onclick="addManualItem()"><i
+                                            class="bi bi-plus"></i> Ajouter au panier</button>
+                                </div>
+
+                                <table class="table table-sm border">
+                                    <tbody id="manualTempList"></tbody>
+                                </table>
+
+                                <div class="bg-cash mb-3 p-2 rounded">
+                                    <div class="d-flex justify-content-between fw-bold"><span>TOTAL:</span> <span
+                                            id="manualTempTotal">0 Ar</span></div>
+                                    <div class="mt-1 row g-2">
+                                        <div class="col-6"><input type="number" id="manualAdvance"
+                                                class="form-control form-control-sm" placeholder="Avance"
+                                                oninput="calcManualBalance()" step="any"></div>
+                                        <div class="text-danger text-end col-6 fw-bold" id="manualBalance">Reste: 0 Ar
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 pt-2 border-warning border-top border-opacity-25 row g-2">
+                                        <div class="col-6">
+                                            <label class="mb-1 text-muted small fw-bold">Moyen de paiement</label>
+                                            <select id="manualPaymentMethod" class="form-select-sm form-select"
+                                                onchange="toggleManualMvolaField()">
+                                                <option value="Cash">💶 Espèces (Cash)</option>
+                                                <option value="Mvola">📱 Mvola</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-6" id="manualMvolaNameContainer" style="display: none;">
+                                            <label class="mb-1 text-muted small fw-bold">Nom du compte Mvola</label>
+                                            <input type="text" id="manualMvolaName" class="form-control form-control-sm"
+                                                placeholder="Ex: Jean Rakoto">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="w-50 btn btn-warning btn-sm fw-bold text-dark" onclick="saveAndPrintManualInvoice(true)">
+                                        <i class="bi bi-printer-fill"></i> ENREGISTRER & IMPRIMER
+                                    </button>
+                                    <button class="w-50 btn btn-outline-warning btn-sm fw-bold text-dark" onclick="saveAndPrintManualInvoice(false)">
+                                        <i class="bi bi-printer"></i> IMPRIMER UNIQUEMENT
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- ONGLET MENSUEL -->
                         <div class="tab-pane fade" id="monthlyTab">
                             <div class="card shadow-sm border-0 mb-3">
                                 <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center"
-                                     style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#monthlySummaryCollapse">
-                                    <span><i class="bi bi-calendar-range me-2 text-info"></i>Chiffre d'Affaire Mensuel</span>
+                                    style="cursor: pointer;" data-bs-toggle="collapse"
+                                    data-bs-target="#monthlySummaryCollapse">
+                                    <span><i class="bi bi-calendar-range me-2 text-info"></i>Chiffre d'Affaire
+                                        Mensuel</span>
                                     <i class="bi bi-chevron-down"></i>
                                 </div>
                                 <div class="card-body collapse show p-0" id="monthlySummaryCollapse">
@@ -376,7 +478,8 @@
                         <div class="tab-pane fade" id="globalTab">
                             <div class="card shadow-sm border-0 mb-3">
                                 <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center"
-                                     style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#globalSummaryCollapse">
+                                    style="cursor: pointer;" data-bs-toggle="collapse"
+                                    data-bs-target="#globalSummaryCollapse">
                                     <span><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Résumé Global</span>
                                     <i class="bi bi-chevron-down"></i>
                                 </div>
@@ -391,8 +494,8 @@
 
                 <div class="col-xl-8">
                     <div class="card">
-                        <div class="bg-white card-header d-flex justify-content-between align-items-center fw-bold" 
-                             style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#caisseJourCollapse">
+                        <div class="bg-white card-header d-flex justify-content-between align-items-center fw-bold"
+                            style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#caisseJourCollapse">
                             <span><i class="me-2 bi bi-calendar3"></i>Caisse par Jour</span>
                             <i class="bi bi-chevron-down"></i>
                         </div>
@@ -418,11 +521,13 @@
 
                     <div class="card mt-3">
                         <div class="bg-white card-header d-flex justify-content-between align-items-center fw-bold"
-                             style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#historyCollapse">
+                            style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#historyCollapse">
                             <span>Dernières Opérations</span>
                             <div class="input-group input-group-sm w-50" onclick="event.stopPropagation()">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-person-search"></i></span>
-                                <input type="text" id="globalClientSearch" class="form-control border-0 bg-light" placeholder="Chercher client..." oninput="renderAll()">
+                                <span class="input-group-text bg-light border-0"><i
+                                        class="bi bi-person-search"></i></span>
+                                <input type="text" id="globalClientSearch" class="form-control border-0 bg-light"
+                                    placeholder="Chercher client..." oninput="renderAll()">
                             </div>
                         </div>
                         <div class="p-0 card-body collapse show" id="historyCollapse">
@@ -437,398 +542,536 @@
             </div>
         </div>
     </div>
-</div> <!-- FIN DE mainApp -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-    const STORAGE_KEY = 'dtf_data_v4';
-    const SUPABASE_URL = 'https://krzpyhmkepwwmmsjekxw.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_lFrpRS4NEO6NYX0KXo4SOA_rIiULYiX';
-    const SUPABASE_TABLE = 'dtf_operations';
+    </div> <!-- FIN DE mainApp -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const STORAGE_KEY = 'dtf_data_v4';
+        const SUPABASE_URL = 'https://krzpyhmkepwwmmsjekxw.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_lFrpRS4NEO6NYX0KXo4SOA_rIiULYiX';
+        const SUPABASE_TABLE = 'dtf_operations';
 
-    let currentBasket = [];
-    let supabaseClient = null;
-    let editingOriginalDate = null; 
+        let currentBasket = [];
+        let manualBasket = [];
+        let supabaseClient = null;
+        let editingOriginalDate = null;
 
-    function setupSupabaseClient() {
-        if (!window.supabase || SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
-            return null;
+        function setupSupabaseClient() {
+            if (!window.supabase || SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+                return null;
+            }
+            return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         }
-        return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
 
-    function readLocalData() {
-        try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        } catch (error) {
-            console.error('Erreur lecture locale:', error);
-            return [];
+        function readLocalData() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            } catch (error) {
+                console.error('Erreur lecture locale:', error);
+                return [];
+            }
         }
-    }
 
-    function writeLocalData(data) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
+        function writeLocalData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
 
-    function toDbOperation(op) {
-        return {
-            id: op.id,
-            type: op.type,
-            client: op.client || null,
-            items: op.items || null,
-            desc: op.desc || null,
-            total: op.total || 0,
-            advance: op.advance || 0,
-            payment_method: op.paymentMethod || null,
-            mvola_name: op.mvolaName || null,
-            op_date: op.date
-        };
-    }
+        function toDbOperation(op) {
+            return {
+                id: op.id,
+                type: op.type,
+                client: op.client || null,
+                items: op.items || null,
+                desc: op.desc || null,
+                total: op.total || 0,
+                advance: op.advance || 0,
+                payment_method: op.paymentMethod || null,
+                mvola_name: op.mvolaName || null,
+                op_date: op.date
+            };
+        }
 
-    function fromDbOperation(row) {
-        return {
-            id: Number(row.id),
-            type: row.type,
-            client: row.client || '',
-            items: row.items || [],
-            desc: row.desc || '',
-            total: Number(row.total || 0),
-            advance: Number(row.advance || 0),
-            paymentMethod: row.payment_method || 'Cash',
-            mvolaName: row.mvola_name || '',
-            date: row.op_date
-        };
-    }
+        function fromDbOperation(row) {
+            return {
+                id: Number(row.id),
+                type: row.type,
+                client: row.client || '',
+                items: row.items || [],
+                desc: row.desc || '',
+                total: Number(row.total || 0),
+                advance: Number(row.advance || 0),
+                paymentMethod: row.payment_method || 'Cash',
+                mvolaName: row.mvola_name || '',
+                date: row.op_date
+            };
+        }
 
-    async function loadFromSupabaseOrLocal() {
-        if (!supabaseClient) return;
-        try {
-            const { data, error } = await supabaseClient
+        async function loadFromSupabaseOrLocal() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from(SUPABASE_TABLE)
+                    .select('*')
+                    .order('op_date', { ascending: false })
+                    .order('id', { ascending: false });
+                if (error) throw error;
+                writeLocalData((data || []).map(fromDbOperation));
+            } catch (error) {
+                console.error('Erreur chargement Supabase:', error);
+            }
+        }
+
+        async function upsertOperation(op) {
+            if (!supabaseClient) return;
+            const { error } = await supabaseClient
                 .from(SUPABASE_TABLE)
-                .select('*')
-                .order('op_date', { ascending: false })
-                .order('id', { ascending: false });
+                .upsert(toDbOperation(op), { onConflict: 'id' });
             if (error) throw error;
-            writeLocalData((data || []).map(fromDbOperation));
-        } catch (error) {
-            console.error('Erreur chargement Supabase:', error);
         }
-    }
 
-    async function upsertOperation(op) {
-        if (!supabaseClient) return;
-        const { error } = await supabaseClient
-            .from(SUPABASE_TABLE)
-            .upsert(toDbOperation(op), { onConflict: 'id' });
-        if (error) throw error;
-    }
-
-    async function deleteOperationRemote(id) {
-        if (!supabaseClient) return;
-        const { error } = await supabaseClient
-            .from(SUPABASE_TABLE)
-            .delete()
-            .eq('id', id);
-        if (error) throw error;
-    }
-
-    function subscribeRealtime() {
-        if (!supabaseClient) {
-            document.getElementById('syncBadge').className = 'badge bg-secondary';
-            document.getElementById('syncBadge').innerHTML = '<i class="bi bi-cloud-slash"></i> Mode Hors-Ligne';
-            return;
+        async function deleteOperationRemote(id) {
+            if (!supabaseClient) return;
+            const { error } = await supabaseClient
+                .from(SUPABASE_TABLE)
+                .delete()
+                .eq('id', id);
+            if (error) throw error;
         }
-        
-        supabaseClient
-            .channel('schema-db-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: SUPABASE_TABLE }, payload => {
-                handleRealtimeChange(payload);
-            })
-            .subscribe((status) => {
-                const badge = document.getElementById('syncBadge');
-                if (status === 'SUBSCRIBED') {
-                    badge.className = 'badge bg-success shadow-sm';
-                    badge.innerHTML = '<i class="bi bi-cloud-check"></i> Synchronisé en temps réel';
-                    setTimeout(() => { badge.style.opacity = '0.5'; }, 3000);
-                    
-                    // Retour à opacité normale au survol
-                    badge.onmouseenter = () => badge.style.opacity = '1';
-                    badge.onmouseleave = () => badge.style.opacity = '0.5';
-                } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-                    badge.className = 'badge bg-danger shadow-sm';
-                    badge.innerHTML = '<i class="bi bi-cloud-slash"></i> Déconnecté du serveur';
-                    badge.style.opacity = '1';
-                }
+
+        function subscribeRealtime() {
+            if (!supabaseClient) {
+                document.getElementById('syncBadge').className = 'badge bg-secondary';
+                document.getElementById('syncBadge').innerHTML = '<i class="bi bi-cloud-slash"></i> Mode Hors-Ligne';
+                return;
+            }
+
+            supabaseClient
+                .channel('schema-db-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: SUPABASE_TABLE }, payload => {
+                    handleRealtimeChange(payload);
+                })
+                .subscribe((status) => {
+                    const badge = document.getElementById('syncBadge');
+                    if (status === 'SUBSCRIBED') {
+                        badge.className = 'badge bg-success shadow-sm';
+                        badge.innerHTML = '<i class="bi bi-cloud-check"></i> Synchronisé en temps réel';
+                        setTimeout(() => { badge.style.opacity = '0.5'; }, 3000);
+
+                        // Retour à opacité normale au survol
+                        badge.onmouseenter = () => badge.style.opacity = '1';
+                        badge.onmouseleave = () => badge.style.opacity = '0.5';
+                    } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+                        badge.className = 'badge bg-danger shadow-sm';
+                        badge.innerHTML = '<i class="bi bi-cloud-slash"></i> Déconnecté du serveur';
+                        badge.style.opacity = '1';
+                    }
+                });
+        }
+
+        function handleRealtimeChange(payload) {
+            let data = readLocalData();
+            const eventType = payload.eventType;
+            const newRecord = payload.new ? fromDbOperation(payload.new) : null;
+            const oldId = payload.old ? Number(payload.old.id) : (newRecord ? newRecord.id : null);
+
+            if (eventType === 'INSERT') {
+                if (!data.find(o => o.id === newRecord.id)) data.unshift(newRecord);
+            } else if (eventType === 'UPDATE') {
+                const idx = data.findIndex(o => o.id === newRecord.id);
+                if (idx !== -1) data[idx] = newRecord;
+                else data.unshift(newRecord);
+            } else if (eventType === 'DELETE') {
+                data = data.filter(o => o.id !== oldId);
+            }
+
+            // Tri constant : Date DESC, puis ID DESC
+            data.sort((a, b) => {
+                if (b.date !== a.date) return b.date.localeCompare(a.date);
+                return b.id - a.id;
             });
-    }
 
-    function handleRealtimeChange(payload) {
-        let data = readLocalData();
-        const eventType = payload.eventType;
-        const newRecord = payload.new ? fromDbOperation(payload.new) : null;
-        const oldId = payload.old ? Number(payload.old.id) : (newRecord ? newRecord.id : null);
-
-        if (eventType === 'INSERT') {
-            if (!data.find(o => o.id === newRecord.id)) data.unshift(newRecord);
-        } else if (eventType === 'UPDATE') {
-            const idx = data.findIndex(o => o.id === newRecord.id);
-            if (idx !== -1) data[idx] = newRecord;
-            else data.unshift(newRecord);
-        } else if (eventType === 'DELETE') {
-            data = data.filter(o => o.id !== oldId);
+            writeLocalData(data);
+            renderAll();
         }
 
-        // Tri constant : Date DESC, puis ID DESC
-        data.sort((a, b) => {
-            if (b.date !== a.date) return b.date.localeCompare(a.date);
-            return b.id - a.id;
-        });
-
-        writeLocalData(data);
-        renderAll();
-    }
-
-    async function deleteAllOperationsRemote() {
-        if (!supabaseClient) return;
-        const { error } = await supabaseClient
-            .from(SUPABASE_TABLE)
-            .delete()
-            .gte('id', 0);
-        if (error) throw error;
-    }
-
-    function getWorkingDate() {
-        const dateInput = document.getElementById('workingDateInput');
-        return (dateInput && dateInput.value) ? dateInput.value : new Date().toLocaleDateString('en-CA');
-    }
-
-    function updateDefaultPrice() {
-        const type = document.getElementById('itemType').value.toUpperCase();
-        let price = 0;
-        if (type.includes('DTF')) price = 18000;
-        else if (type.includes('CONCEPTION')) price = 5000;
-        else if (type.includes('TEXTILE')) price = 15000;
-
-        if (price > 0) {
-            document.getElementById('itemPrice').value = price;
+        async function deleteAllOperationsRemote() {
+            if (!supabaseClient) return;
+            const { error } = await supabaseClient
+                .from(SUPABASE_TABLE)
+                .delete()
+                .gte('id', 0);
+            if (error) throw error;
         }
-    }
 
-    function addItem() {
-        const type = document.getElementById('itemType').value || 'Autre Produit';
-        const qty = parseFloat(document.getElementById('itemQty').value) || 0;
-        const price = parseFloat(document.getElementById('itemPrice').value) || 0;
-        if (qty <= 0) return;
-        currentBasket.push({ type, qty, price, total: qty * price });
-        renderBasket();
-    }
-
-    function renderBasket() {
-        const list = document.getElementById('tempList');
-        if(!list) return;
-        list.innerHTML = '';
-        let total = 0;
-        currentBasket.forEach((item, index) => {
-            total += item.total;
-            let unit = item.type.toUpperCase().includes('DTF') ? 'm' : '';
-            list.innerHTML += `<tr><td>${item.type}</td><td>${item.qty}${unit}</td><td>${item.total.toLocaleString()}</td><td onclick="currentBasket.splice(${index},1);renderBasket()" class="text-danger" style="cursor:pointer">x</td></tr>`;
-        });
-        document.getElementById('tempTotal').innerText = total.toLocaleString() + ' Ar';
-        calcBalance();
-    }
-
-    function calcBalance() {
-        let total = currentBasket.reduce((sum, i) => sum + i.total, 0);
-        let adv = parseFloat(document.getElementById('orderAdvance').value) || 0;
-        let balElement = document.getElementById('orderBalance');
-        if(balElement) balElement.innerText = 'Reste: ' + (total - adv).toLocaleString() + ' Ar';
-    }
-
-    function toggleMvolaField() {
-        const method = document.getElementById('paymentMethod').value;
-        const mvolaContainer = document.getElementById('mvolaNameContainer');
-        if(mvolaContainer) {
-            mvolaContainer.style.display = (method === 'Mvola') ? 'block' : 'none';
+        function getWorkingDate() {
+            const dateInput = document.getElementById('workingDateInput');
+            return (dateInput && dateInput.value) ? dateInput.value : new Date().toLocaleDateString('en-CA');
         }
-    }
 
-    function toggleDebtMvolaField() {
-        const method = document.getElementById('debtPaymentMethod').value;
-        const container = document.getElementById('debtMvolaNameContainer');
-        if(container) {
-            container.style.display = (method === 'Mvola') ? 'block' : 'none';
+        function updateDefaultPrice() {
+            const type = document.getElementById('itemType').value.toUpperCase();
+            let price = 0;
+            if (type.includes('DTF')) price = 18000;
+            else if (type.includes('CONCEPTION')) price = 5000;
+            else if (type.includes('TEXTILE')) price = 15000;
+
+            if (price > 0) {
+                document.getElementById('itemPrice').value = price;
+            }
         }
-    }
 
-    function saveOrder() {
-        const client = document.getElementById('orderClient').value || 'Client Passant';
-        if (currentBasket.length === 0) return;
+        function addItem() {
+            const type = document.getElementById('itemType').value || 'Autre Produit';
+            const qty = parseFloat(document.getElementById('itemQty').value) || 0;
+            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+            if (qty <= 0) return;
+            currentBasket.push({ type, qty, price, total: qty * price });
+            renderBasket();
+        }
 
-        const paymentMethod = document.getElementById('paymentMethod').value;
-        const mvolaName = paymentMethod === 'Mvola' ? document.getElementById('mvolaName').value : '';
-        const finalDate = editingOriginalDate ? editingOriginalDate : getWorkingDate();
+        function renderBasket() {
+            const list = document.getElementById('tempList');
+            if (!list) return;
+            list.innerHTML = '';
+            let total = 0;
+            currentBasket.forEach((item, index) => {
+                total += item.total;
+                let unit = item.type.toUpperCase().includes('DTF') ? 'm' : '';
+                list.innerHTML += `<tr><td>${item.type}</td><td>${item.qty}${unit}</td><td>${item.total.toLocaleString()}</td><td onclick="currentBasket.splice(${index},1);renderBasket()" class="text-danger" style="cursor:pointer">x</td></tr>`;
+            });
+            document.getElementById('tempTotal').innerText = total.toLocaleString() + ' Ar';
+            calcBalance();
+        }
 
-        const order = {
-            id: Date.now(),
-            type: 'SALE',
-            client,
-            items: [...currentBasket],
-            total: currentBasket.reduce((sum, i) => sum + i.total, 0),
-            advance: parseFloat(document.getElementById('orderAdvance').value) || 0,
-            paymentMethod: paymentMethod,
-            mvolaName: mvolaName,
-            date: finalDate
-        };
+        function calcBalance() {
+            let total = currentBasket.reduce((sum, i) => sum + i.total, 0);
+            let adv = parseFloat(document.getElementById('orderAdvance').value) || 0;
+            let balElement = document.getElementById('orderBalance');
+            if (balElement) balElement.innerText = 'Reste: ' + (total - adv).toLocaleString() + ' Ar';
+        }
 
-        let data = readLocalData();
-        data.unshift(order);
-        writeLocalData(data);
-        upsertOperation(order).catch(err => console.error('Erreur sync:', err));
+        function toggleMvolaField() {
+            const method = document.getElementById('paymentMethod').value;
+            const mvolaContainer = document.getElementById('mvolaNameContainer');
+            if (mvolaContainer) {
+                mvolaContainer.style.display = (method === 'Mvola') ? 'block' : 'none';
+            }
+        }
 
-        currentBasket = [];
-        document.getElementById('orderClient').value = '';
-        document.getElementById('orderAdvance').value = '';
-        document.getElementById('paymentMethod').value = 'Cash';
-        document.getElementById('mvolaName').value = '';
-        toggleMvolaField();
-        
-        editingOriginalDate = null;
-        renderBasket();
-        renderAll();
-    }
+        function toggleDebtMvolaField() {
+            const method = document.getElementById('debtPaymentMethod').value;
+            const container = document.getElementById('debtMvolaNameContainer');
+            if (container) {
+                container.style.display = (method === 'Mvola') ? 'block' : 'none';
+            }
+        }
 
-    function saveExpense() {
-        const desc = document.getElementById('expDesc').value;
-        const amount = parseFloat(document.getElementById('expAmount').value) || 0;
-        if (!desc || amount <= 0) return;
+        function saveOrder() {
+            const client = document.getElementById('orderClient').value || 'Client Passant';
+            if (currentBasket.length === 0) return;
 
-        const finalDate = editingOriginalDate ? editingOriginalDate : getWorkingDate();
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const mvolaName = paymentMethod === 'Mvola' ? document.getElementById('mvolaName').value : '';
+            const finalDate = editingOriginalDate ? editingOriginalDate : getWorkingDate();
 
-        const exp = {
-            id: Date.now(),
-            type: 'EXPENSE',
-            desc,
-            total: amount,
-            date: finalDate
-        };
+            const order = {
+                id: Date.now(),
+                type: 'SALE',
+                client,
+                items: [...currentBasket],
+                total: currentBasket.reduce((sum, i) => sum + i.total, 0),
+                advance: parseFloat(document.getElementById('orderAdvance').value) || 0,
+                paymentMethod: paymentMethod,
+                mvolaName: mvolaName,
+                date: finalDate
+            };
 
-        let data = readLocalData();
-        data.unshift(exp);
-        writeLocalData(data);
-        upsertOperation(exp).catch(err => console.error('Erreur sync:', err));
+            let data = readLocalData();
+            data.unshift(order);
+            writeLocalData(data);
+            upsertOperation(order).catch(err => console.error('Erreur sync:', err));
 
-        document.getElementById('expDesc').value = '';
-        document.getElementById('expAmount').value = '';
-        editingOriginalDate = null;
-        renderAll();
-    }
+            currentBasket = [];
+            document.getElementById('orderClient').value = '';
+            document.getElementById('orderAdvance').value = '';
+            document.getElementById('paymentMethod').value = 'Cash';
+            document.getElementById('mvolaName').value = '';
+            toggleMvolaField();
 
-    function payPartialDebt(id) {
-        let data = readLocalData();
-        const opIndex = data.findIndex(o => o.id === id);
+            editingOriginalDate = null;
+            renderBasket();
+            renderAll();
+        }
 
-        if (opIndex !== -1) {
-            const op = data[opIndex];
-            const reste = op.total - op.advance;
+        function updateManualDefaultPrice() {
+            const type = document.getElementById('manualItemType').value.toUpperCase();
+            let price = 0;
+            if (type.includes('DTF')) price = 18000;
+            else if (type.includes('CONCEPTION')) price = 5000;
+            else if (type.includes('TEXTILE')) price = 15000;
 
-            let amountStr = prompt(`Client : ${op.client}\nReste à payer : ${reste.toLocaleString()} Ar\n\nEntrez le montant payé :`, reste);
+            if (price > 0) {
+                document.getElementById('manualItemPrice').value = price;
+            }
+        }
 
-            if (amountStr !== null && amountStr.trim() !== '') {
-                let amount = parseFloat(amountStr);
-                if (isNaN(amount) || amount <= 0) return alert("Montant invalide.");
-                if (amount > reste) return alert("Le montant est supérieur au reste !");
+        function addManualItem() {
+            const type = document.getElementById('manualItemType').value || 'Autre Produit';
+            const qty = parseFloat(document.getElementById('manualItemQty').value) || 0;
+            const price = parseFloat(document.getElementById('manualItemPrice').value) || 0;
+            if (qty <= 0) return;
+            manualBasket.push({ type, qty, price, total: qty * price });
+            renderManualBasket();
+        }
 
-                data[opIndex].advance += amount;
+        function renderManualBasket() {
+            const list = document.getElementById('manualTempList');
+            if (!list) return;
+            list.innerHTML = '';
+            let total = 0;
+            manualBasket.forEach((item, index) => {
+                total += item.total;
+                let unit = item.type.toUpperCase().includes('DTF') ? 'm' : '';
+                list.innerHTML += `<tr><td>${item.type}</td><td>${item.qty}${unit}</td><td>${item.total.toLocaleString()}</td><td onclick="manualBasket.splice(${index},1);renderManualBasket()" class="text-danger" style="cursor:pointer">x</td></tr>`;
+            });
+            document.getElementById('manualTempTotal').innerText = total.toLocaleString() + ' Ar';
+            calcManualBalance();
+        }
+
+        function calcManualBalance() {
+            let total = manualBasket.reduce((sum, i) => sum + i.total, 0);
+            let adv = parseFloat(document.getElementById('manualAdvance').value) || 0;
+            let balElement = document.getElementById('manualBalance');
+            if (balElement) balElement.innerText = 'Reste: ' + (total - adv).toLocaleString() + ' Ar';
+        }
+
+        function toggleManualMvolaField() {
+            const method = document.getElementById('manualPaymentMethod').value;
+            const mvolaContainer = document.getElementById('manualMvolaNameContainer');
+            if (mvolaContainer) {
+                mvolaContainer.style.display = (method === 'Mvola') ? 'block' : 'none';
+            }
+        }
+
+        function saveAndPrintManualInvoice(shouldSave) {
+            const client = document.getElementById('manualClient').value || 'Client Passant';
+            if (manualBasket.length === 0) return alert("Le panier est vide.");
+
+            const paymentMethod = document.getElementById('manualPaymentMethod').value;
+            const mvolaName = paymentMethod === 'Mvola' ? document.getElementById('manualMvolaName').value : '';
+            
+            let manualDateInput = document.getElementById('manualDate');
+            const dateStr = (manualDateInput && manualDateInput.value) ? manualDateInput.value : getWorkingDate();
+            
+            const total = manualBasket.reduce((sum, i) => sum + i.total, 0);
+            const advance = parseFloat(document.getElementById('manualAdvance').value) || 0;
+
+            if (shouldSave) {
+                const order = {
+                    id: Date.now(),
+                    type: 'SALE',
+                    client,
+                    items: [...manualBasket],
+                    total: total,
+                    advance: advance,
+                    paymentMethod: paymentMethod,
+                    mvolaName: mvolaName,
+                    date: dateStr
+                };
+
+                let data = readLocalData();
+                data.unshift(order);
                 writeLocalData(data);
-                upsertOperation(data[opIndex]);
+                upsertOperation(order).catch(err => console.error('Erreur sync:', err));
+            }
+
+            // Impression
+            printDirectInvoice(client, dateStr, manualBasket, total, advance, paymentMethod, mvolaName);
+
+            if (shouldSave) {
+                manualBasket = [];
+                document.getElementById('manualClient').value = 'Client Passant';
+                document.getElementById('manualAdvance').value = '';
+                document.getElementById('manualPaymentMethod').value = 'Cash';
+                document.getElementById('manualMvolaName').value = '';
+                toggleManualMvolaField();
+                
+                const today = new Date().toLocaleDateString('en-CA');
+                if (manualDateInput) manualDateInput.value = today;
+
+                renderManualBasket();
                 renderAll();
             }
         }
-    }
 
-    function updateDebtInfo() {
-        const debtSelect = document.getElementById('debtSelect');
-        if(!debtSelect) return;
-        const id = parseInt(debtSelect.value);
-        const display = document.getElementById('debtInfoDisplay');
+        function printDirectInvoice(client, dateStr, items, total, advance, paymentMethod, mvolaName) {
+            let itemsHtml = items.map(i => {
+                const uPrice = i.price || (i.total / i.qty);
+                return `<tr><td>${i.type}</td><td class="text-center">${i.qty}</td><td class="text-end">${uPrice.toLocaleString()}</td><td class="text-end">${i.total.toLocaleString()}</td></tr>`;
+            }).join('');
 
-        if (!id) {
-            if(display) display.style.display = 'none';
-            return;
+            let pInfo = paymentMethod || 'Cash';
+            if (pInfo === 'Mvola' && mvolaName) pInfo += ` (${mvolaName})`;
+
+            const stubHtml = `
+        <div style="max-width: 450px; margin: 20px auto; color: black; font-family: monospace;">
+            <h3 class="mb-0 text-center fw-bold">DTF PRO EMOPRINT</h3>
+            <p class="mb-0 text-center small">Ambohimanarina Tsena en Face Magasin M</p>
+            <p class="mb-0 text-center small">Tél: 034 39 978 25</p>
+            <p class="mb-2 text-muted text-center small">Facture / Reçu</p>
+            <div class="mb-3 border-2 border-bottom border-dark"></div>
+            <p class="mb-1"><b>Date :</b> ${dateStr}</p>
+            <p class="mb-1"><b>Client :</b> ${client}</p>
+            <table class="table table-borderless table-sm border-bottom border-dark">
+                <thead><tr><th>Désignation</th><th class="text-center">Qté</th><th class="text-end">PU</th><th class="text-end">Total</th></tr></thead>
+                <tbody>${itemsHtml}</tbody>
+            </table>
+            <div class="mt-3 text-end">
+                <p class="mb-1"><b>TOTAL :</b> ${total.toLocaleString()} Ar</p>
+                <p class="mb-1"><b>Avance :</b> ${advance.toLocaleString()} Ar</p>
+                <h5 class="mt-2 pt-2 border-top fw-bold">RESTE : ${(total - advance).toLocaleString()} Ar</h5>
+            </div>
+            <div class="mt-4 pt-2 text-center" style="border-top: 1px dashed #000;">
+                <p class="small mb-0">Signature :</p>
+                <p class="fw-bold">Emo print</p>
+            </div>
+        </div>`;
+            document.getElementById('invoiceStub').innerHTML = stubHtml;
+            window.print();
         }
 
-        const data = readLocalData();
-        const op = data.find(o => o.id === id);
-        if (op) {
-            document.getElementById('diTotal').innerText = op.total.toLocaleString();
-            document.getElementById('diAdvance').innerText = op.advance.toLocaleString();
-            const reste = op.total - op.advance;
-            document.getElementById('diReste').innerText = reste.toLocaleString();
-            
-            const itemsHtml = op.items.map(i => `<div>• ${i.qty}${i.type.toUpperCase().includes('DTF') ? 'm' : ''} ${i.type}</div>`).join('');
-            document.getElementById('diItemsList').innerHTML = `<div class="fw-bold mb-1">Articles commandés :</div>${itemsHtml}`;
-            
-            document.getElementById('debtPaymentAmount').value = reste; 
-            
-            // Pré-remplir le mode de paiement et le nom Mvola si existant
-            if (op.paymentMethod === 'Mvola') {
-                document.getElementById('debtPaymentMethod').value = 'Mvola';
-                document.getElementById('debtMvolaName').value = op.mvolaName || '';
-            } else {
-                document.getElementById('debtPaymentMethod').value = 'Cash';
-                document.getElementById('debtMvolaName').value = '';
-            }
-            toggleDebtMvolaField();
-            
-            if(display) display.style.display = 'block';
-        }
-    }
+        function saveExpense() {
+            const desc = document.getElementById('expDesc').value;
+            const amount = parseFloat(document.getElementById('expAmount').value) || 0;
+            if (!desc || amount <= 0) return;
 
-    function processDebtPayment() {
-        const id = parseInt(document.getElementById('debtSelect').value);
-        const amount = parseFloat(document.getElementById('debtPaymentAmount').value);
-        const method = document.getElementById('debtPaymentMethod').value;
-        const mvolaName = method === 'Mvola' ? document.getElementById('debtMvolaName').value : '';
+            const finalDate = editingOriginalDate ? editingOriginalDate : getWorkingDate();
 
-        if (!id || isNaN(amount) || amount <= 0) return alert("Saisie invalide.");
+            const exp = {
+                id: Date.now(),
+                type: 'EXPENSE',
+                desc,
+                total: amount,
+                date: finalDate
+            };
 
-        let data = readLocalData();
-        const opIndex = data.findIndex(o => o.id === id);
-
-        if (opIndex !== -1) {
-            const op = data[opIndex];
-            const resteAvant = op.total - op.advance;
-            if (amount > (resteAvant + 0.1)) return alert(`Le montant saisi (${amount.toLocaleString()} Ar) est supérieur au reste à payer (${resteAvant.toLocaleString()} Ar).`);
-
-            data[opIndex].advance += amount;
-            // Sauvegarder le nouveau mode de paiement et le nom Mvola
-            data[opIndex].paymentMethod = method;
-            data[opIndex].mvolaName = mvolaName;
-            
-            const resteApres = op.total - data[opIndex].advance;
+            let data = readLocalData();
+            data.unshift(exp);
             writeLocalData(data);
-            upsertOperation(data[opIndex]);
+            upsertOperation(exp).catch(err => console.error('Erreur sync:', err));
 
-            const paymentDate = getWorkingDate();
-            printDebtReceipt(op, amount, resteAvant, resteApres, method, mvolaName, paymentDate);
-
-            // Réinitialiser les champs
-            document.getElementById('debtPaymentAmount').value = '';
-            document.getElementById('debtSelect').value = '';
-            document.getElementById('debtMvolaName').value = '';
-            document.getElementById('debtPaymentMethod').value = 'Cash';
-            toggleDebtMvolaField();
-            
-            updateDebtInfo();
+            document.getElementById('expDesc').value = '';
+            document.getElementById('expAmount').value = '';
+            editingOriginalDate = null;
             renderAll();
         }
-    }
 
-    function printDebtReceipt(op, paymentAmount, resteAvant, resteApres, method, mvolaName, dateStr) {
-        let pInfo = method;
-        if (method === 'Mvola' && mvolaName) pInfo += ` (${mvolaName})`;
-        
-        const stubHtml = `
+        function payPartialDebt(id) {
+            let data = readLocalData();
+            const opIndex = data.findIndex(o => o.id === id);
+
+            if (opIndex !== -1) {
+                const op = data[opIndex];
+                const reste = op.total - op.advance;
+
+                let amountStr = prompt(`Client : ${op.client}\nReste à payer : ${reste.toLocaleString()} Ar\n\nEntrez le montant payé :`, reste);
+
+                if (amountStr !== null && amountStr.trim() !== '') {
+                    let amount = parseFloat(amountStr);
+                    if (isNaN(amount) || amount <= 0) return alert("Montant invalide.");
+                    if (amount > reste) return alert("Le montant est supérieur au reste !");
+
+                    data[opIndex].advance += amount;
+                    writeLocalData(data);
+                    upsertOperation(data[opIndex]);
+                    renderAll();
+                }
+            }
+        }
+
+        function updateDebtInfo() {
+            const debtSelect = document.getElementById('debtSelect');
+            if (!debtSelect) return;
+            const id = parseInt(debtSelect.value);
+            const display = document.getElementById('debtInfoDisplay');
+
+            if (!id) {
+                if (display) display.style.display = 'none';
+                return;
+            }
+
+            const data = readLocalData();
+            const op = data.find(o => o.id === id);
+            if (op) {
+                document.getElementById('diTotal').innerText = op.total.toLocaleString();
+                document.getElementById('diAdvance').innerText = op.advance.toLocaleString();
+                const reste = op.total - op.advance;
+                document.getElementById('diReste').innerText = reste.toLocaleString();
+
+                const itemsHtml = op.items.map(i => `<div>• ${i.qty}${i.type.toUpperCase().includes('DTF') ? 'm' : ''} ${i.type}</div>`).join('');
+                document.getElementById('diItemsList').innerHTML = `<div class="fw-bold mb-1">Articles commandés :</div>${itemsHtml}`;
+
+                document.getElementById('debtPaymentAmount').value = reste;
+
+                // Pré-remplir le mode de paiement et le nom Mvola si existant
+                if (op.paymentMethod === 'Mvola') {
+                    document.getElementById('debtPaymentMethod').value = 'Mvola';
+                    document.getElementById('debtMvolaName').value = op.mvolaName || '';
+                } else {
+                    document.getElementById('debtPaymentMethod').value = 'Cash';
+                    document.getElementById('debtMvolaName').value = '';
+                }
+                toggleDebtMvolaField();
+
+                if (display) display.style.display = 'block';
+            }
+        }
+
+        function processDebtPayment() {
+            const id = parseInt(document.getElementById('debtSelect').value);
+            const amount = parseFloat(document.getElementById('debtPaymentAmount').value);
+            const method = document.getElementById('debtPaymentMethod').value;
+            const mvolaName = method === 'Mvola' ? document.getElementById('debtMvolaName').value : '';
+
+            if (!id || isNaN(amount) || amount <= 0) return alert("Saisie invalide.");
+
+            let data = readLocalData();
+            const opIndex = data.findIndex(o => o.id === id);
+
+            if (opIndex !== -1) {
+                const op = data[opIndex];
+                const resteAvant = op.total - op.advance;
+                if (amount > (resteAvant + 0.1)) return alert(`Le montant saisi (${amount.toLocaleString()} Ar) est supérieur au reste à payer (${resteAvant.toLocaleString()} Ar).`);
+
+                data[opIndex].advance += amount;
+                // Sauvegarder le nouveau mode de paiement et le nom Mvola
+                data[opIndex].paymentMethod = method;
+                data[opIndex].mvolaName = mvolaName;
+
+                const resteApres = op.total - data[opIndex].advance;
+                writeLocalData(data);
+                upsertOperation(data[opIndex]);
+
+                const paymentDate = getWorkingDate();
+                printDebtReceipt(op, amount, resteAvant, resteApres, method, mvolaName, paymentDate);
+
+                // Réinitialiser les champs
+                document.getElementById('debtPaymentAmount').value = '';
+                document.getElementById('debtSelect').value = '';
+                document.getElementById('debtMvolaName').value = '';
+                document.getElementById('debtPaymentMethod').value = 'Cash';
+                toggleDebtMvolaField();
+
+                updateDebtInfo();
+                renderAll();
+            }
+        }
+
+        function printDebtReceipt(op, paymentAmount, resteAvant, resteApres, method, mvolaName, dateStr) {
+            let pInfo = method;
+            if (method === 'Mvola' && mvolaName) pInfo += ` (${mvolaName})`;
+
+            const stubHtml = `
         <div style="max-width: 450px; margin: 20px auto; color: black; font-family: monospace;">
             <h3 class="mb-0 text-center fw-bold">DTF PRO EMOPRINT</h3>
             <p class="mb-0 text-center small">Ambohimanarina Tsena en Face Magasin M</p>
@@ -848,52 +1091,52 @@
                 <p class="fw-bold">Emo print</p>
             </div>
         </div>`;
-        document.getElementById('invoiceStub').innerHTML = stubHtml;
-        window.print();
-    }
-
-    function editOp(id) {
-        let data = readLocalData();
-        const opIndex = data.findIndex(o => o.id === id);
-        if (opIndex === -1) return;
-
-        const op = data[opIndex];
-        editingOriginalDate = op.date;
-
-        if (op.type === 'SALE') {
-            new bootstrap.Tab(document.getElementById('tab-vente')).show();
-            document.getElementById('orderClient').value = op.client;
-            document.getElementById('orderAdvance').value = op.advance;
-            document.getElementById('paymentMethod').value = op.paymentMethod || 'Cash';
-            document.getElementById('mvolaName').value = op.mvolaName || '';
-            toggleMvolaField();
-            currentBasket = [...op.items];
-            renderBasket();
-        } else if (op.type === 'EXPENSE') {
-            new bootstrap.Tab(document.getElementById('tab-depense')).show();
-            document.getElementById('expDesc').value = op.desc;
-            document.getElementById('expAmount').value = op.total;
+            document.getElementById('invoiceStub').innerHTML = stubHtml;
+            window.print();
         }
 
-        data.splice(opIndex, 1);
-        writeLocalData(data);
-        deleteOperationRemote(id);
-        renderAll();
-    }
+        function editOp(id) {
+            let data = readLocalData();
+            const opIndex = data.findIndex(o => o.id === id);
+            if (opIndex === -1) return;
 
-    function printInvoice(id) {
-        const order = readLocalData().find(o => o.id === id);
-        if (!order || order.type !== 'SALE') return;
+            const op = data[opIndex];
+            editingOriginalDate = op.date;
 
-        let itemsHtml = order.items.map(i => {
-            const uPrice = i.price || (i.total / i.qty);
-            return `<tr><td>${i.type}</td><td class="text-center">${i.qty}</td><td class="text-end">${uPrice.toLocaleString()}</td><td class="text-end">${i.total.toLocaleString()}</td></tr>`;
-        }).join('');
+            if (op.type === 'SALE') {
+                new bootstrap.Tab(document.getElementById('tab-vente')).show();
+                document.getElementById('orderClient').value = op.client;
+                document.getElementById('orderAdvance').value = op.advance;
+                document.getElementById('paymentMethod').value = op.paymentMethod || 'Cash';
+                document.getElementById('mvolaName').value = op.mvolaName || '';
+                toggleMvolaField();
+                currentBasket = [...op.items];
+                renderBasket();
+            } else if (op.type === 'EXPENSE') {
+                new bootstrap.Tab(document.getElementById('tab-depense')).show();
+                document.getElementById('expDesc').value = op.desc;
+                document.getElementById('expAmount').value = op.total;
+            }
 
-        let pInfo = order.paymentMethod || 'Cash';
-        if (pInfo === 'Mvola' && order.mvolaName) pInfo += ` (${order.mvolaName})`;
+            data.splice(opIndex, 1);
+            writeLocalData(data);
+            deleteOperationRemote(id);
+            renderAll();
+        }
 
-        const stubHtml = `
+        function printInvoice(id) {
+            const order = readLocalData().find(o => o.id === id);
+            if (!order || order.type !== 'SALE') return;
+
+            let itemsHtml = order.items.map(i => {
+                const uPrice = i.price || (i.total / i.qty);
+                return `<tr><td>${i.type}</td><td class="text-center">${i.qty}</td><td class="text-end">${uPrice.toLocaleString()}</td><td class="text-end">${i.total.toLocaleString()}</td></tr>`;
+            }).join('');
+
+            let pInfo = order.paymentMethod || 'Cash';
+            if (pInfo === 'Mvola' && order.mvolaName) pInfo += ` (${order.mvolaName})`;
+
+            const stubHtml = `
         <div style="max-width: 450px; margin: 20px auto; color: black; font-family: monospace;">
             <h3 class="mb-0 text-center fw-bold">DTF PRO EMOPRINT</h3>
             <p class="mb-0 text-center small">Ambohimanarina Tsena en Face Magasin M</p>
@@ -916,104 +1159,104 @@
                 <p class="fw-bold">Emo print</p>
             </div>
         </div>`;
-        document.getElementById('invoiceStub').innerHTML = stubHtml;
-        window.print();
-    }
-
-    function closeJournal() {
-        const currentDate = getWorkingDate();
-        if(!confirm(`Clôturer la caisse du ${currentDate} et passer au jour suivant ?`)) return;
-
-        const data = readLocalData();
-        const dayData = data.filter(op => op.date === currentDate);
-        
-        let sales = 0, expenses = 0, advances = 0;
-        dayData.forEach(op => {
-            if (op.type === 'SALE') { sales += op.total; advances += op.advance; }
-            else { expenses += op.total; }
-        });
-
-        alert(`--- RÉSUMÉ DU ${currentDate} ---\nVentes : ${sales.toLocaleString()} Ar\nEncaissé : ${advances.toLocaleString()} Ar\nDépenses : ${expenses.toLocaleString()} Ar\n\n✅ NET : ${(advances - expenses).toLocaleString()} Ar`);
-
-        let nextDay = new Date(currentDate);
-        nextDay.setDate(nextDay.getDate() + 1);
-        let nextDayStr = nextDay.toLocaleDateString('en-CA');
-        
-        document.getElementById('workingDateInput').value = nextDayStr;
-        document.getElementById('journalFilterDate').value = nextDayStr;
-        renderAll();
-    }
-
-    function renderAll() {
-        const data = readLocalData();
-        const filterInput = document.getElementById('journalFilterDate');
-        const filterDate = filterInput && filterInput.value ? filterInput.value : null;
-
-        const filteredData = filterDate ? data.filter(op => op.date === filterDate) : data;
-
-        let totalSales = 0, totalExp = 0, globalAdvance = 0;
-        
-        const debtList = document.getElementById('debtList');
-        const debtSelect = document.getElementById('debtSelect');
-        if(debtList) debtList.innerHTML = '';
-        if(debtSelect) debtSelect.innerHTML = '<option value="">-- Choisir une dette en cours --</option>';
-        let hasDebts = false;
-        filteredData.forEach(op => {
-            if (op.type === 'SALE') {
-                totalSales += op.total;
-                globalAdvance += op.advance;
-            } else if (op.type === 'EXPENSE') {
-                totalExp += op.total;
-            }
-        });
-
-        // --- LISTE DES DETTES (Toujours Global pour permettre le remboursement) ---
-        const debtSearch = document.getElementById('debtSearchInput') ? document.getElementById('debtSearchInput').value.toLowerCase() : '';
-        
-        data.forEach(op => {
-            if (op.type === 'SALE') {
-                const reste = Math.round(op.total - op.advance);
-                if (reste > 0) {
-                    // Filtre par recherche client si saisie
-                    if (debtSearch && !op.client.toLowerCase().includes(debtSearch)) return;
-
-                    hasDebts = true;
-                const itemsBadges = op.items ? op.items.map(i => {
-                    let unit = i.type.toUpperCase().includes('DTF') ? 'm' : '';
-                    let badgeClass = 'bg-secondary text-white';
-                    const t = i.type.toUpperCase();
-                    if (t.includes('DTF')) badgeClass = 'bg-primary text-white';
-                    else if (t.includes('CONCEPTION')) badgeClass = 'bg-info text-dark';
-                    else if (t.includes('TEXTILE')) badgeClass = 'bg-warning text-dark';
-                    return `<span class="badge ${badgeClass} me-1" style="font-size: 0.65rem;">${i.qty}${unit}</span>`;
-                }).join('') : '';
-
-                if(debtList) debtList.innerHTML += `<tr><td><b>${op.client}</b><br><small class="text-muted">${op.date}</small><div class="mt-1">${itemsBadges}</div></td><td class="text-danger text-end fw-bold">${reste.toLocaleString()} Ar</td><td class="text-center"><button class="btn btn-sm btn-primary" onclick="payPartialDebt(${op.id})">Payer</button></td></tr>`;
-                if(debtSelect) debtSelect.innerHTML += `<option value="${op.id}">${op.client} - Reste: ${reste.toLocaleString()} Ar (${op.date})</option>`;
-                }
-            }
-        });
-
-        if (!hasDebts && debtList) {
-            debtList.innerHTML = debtSearch ? '<tr><td colspan="3" class="text-center text-muted small">Aucun client trouvé pour "' + debtSearch + '"</td></tr>' : '<tr><td colspan="3" class="text-center text-success small">Aucune dette</td></tr>';
+            document.getElementById('invoiceStub').innerHTML = stubHtml;
+            window.print();
         }
 
-        updateDebtInfo();
+        function closeJournal() {
+            const currentDate = getWorkingDate();
+            if (!confirm(`Clôturer la caisse du ${currentDate} et passer au jour suivant ?`)) return;
 
-        if(document.getElementById('statTotalSales')) document.getElementById('statTotalSales').innerText = totalSales.toLocaleString() + ' Ar';
-        if(document.getElementById('statTotalExp')) document.getElementById('statTotalExp').innerText = totalExp.toLocaleString() + ' Ar';
-        if(document.getElementById('statNet')) document.getElementById('statNet').innerText = (globalAdvance - totalExp).toLocaleString() + ' Ar';
+            const data = readLocalData();
+            const dayData = data.filter(op => op.date === currentDate);
 
-        // --- LISTE DES TOUTES LES DEPENSES DANS L'ONGLET DEPENSE ---
-        const dailyExpListInTab = document.getElementById('dailyExpListInTab');
-        if (dailyExpListInTab) {
-            dailyExpListInTab.innerHTML = '';
-            // On affiche TOUTES les dépenses (pas seulement les filtrées)
-            const allExpenses = data.filter(op => op.type === 'EXPENSE')
-                .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
-            
-            allExpenses.forEach(op => {
-                dailyExpListInTab.innerHTML += `
+            let sales = 0, expenses = 0, advances = 0;
+            dayData.forEach(op => {
+                if (op.type === 'SALE') { sales += op.total; advances += op.advance; }
+                else { expenses += op.total; }
+            });
+
+            alert(`--- RÉSUMÉ DU ${currentDate} ---\nVentes : ${sales.toLocaleString()} Ar\nEncaissé : ${advances.toLocaleString()} Ar\nDépenses : ${expenses.toLocaleString()} Ar\n\n✅ NET : ${(advances - expenses).toLocaleString()} Ar`);
+
+            let nextDay = new Date(currentDate);
+            nextDay.setDate(nextDay.getDate() + 1);
+            let nextDayStr = nextDay.toLocaleDateString('en-CA');
+
+            document.getElementById('workingDateInput').value = nextDayStr;
+            document.getElementById('journalFilterDate').value = nextDayStr;
+            renderAll();
+        }
+
+        function renderAll() {
+            const data = readLocalData();
+            const filterInput = document.getElementById('journalFilterDate');
+            const filterDate = filterInput && filterInput.value ? filterInput.value : null;
+
+            const filteredData = filterDate ? data.filter(op => op.date === filterDate) : data;
+
+            let totalSales = 0, totalExp = 0, globalAdvance = 0;
+
+            const debtList = document.getElementById('debtList');
+            const debtSelect = document.getElementById('debtSelect');
+            if (debtList) debtList.innerHTML = '';
+            if (debtSelect) debtSelect.innerHTML = '<option value="">-- Choisir une dette en cours --</option>';
+            let hasDebts = false;
+            filteredData.forEach(op => {
+                if (op.type === 'SALE') {
+                    totalSales += op.total;
+                    globalAdvance += op.advance;
+                } else if (op.type === 'EXPENSE') {
+                    totalExp += op.total;
+                }
+            });
+
+            // --- LISTE DES DETTES (Toujours Global pour permettre le remboursement) ---
+            const debtSearch = document.getElementById('debtSearchInput') ? document.getElementById('debtSearchInput').value.toLowerCase() : '';
+
+            data.forEach(op => {
+                if (op.type === 'SALE') {
+                    const reste = Math.round(op.total - op.advance);
+                    if (reste > 0) {
+                        // Filtre par recherche client si saisie
+                        if (debtSearch && !op.client.toLowerCase().includes(debtSearch)) return;
+
+                        hasDebts = true;
+                        const itemsBadges = op.items ? op.items.map(i => {
+                            let unit = i.type.toUpperCase().includes('DTF') ? 'm' : '';
+                            let badgeClass = 'bg-secondary text-white';
+                            const t = i.type.toUpperCase();
+                            if (t.includes('DTF')) badgeClass = 'bg-primary text-white';
+                            else if (t.includes('CONCEPTION')) badgeClass = 'bg-info text-dark';
+                            else if (t.includes('TEXTILE')) badgeClass = 'bg-warning text-dark';
+                            return `<span class="badge ${badgeClass} me-1" style="font-size: 0.65rem;">${i.qty}${unit}</span>`;
+                        }).join('') : '';
+
+                        if (debtList) debtList.innerHTML += `<tr><td><b>${op.client}</b><br><small class="text-muted">${op.date}</small><div class="mt-1">${itemsBadges}</div></td><td class="text-danger text-end fw-bold">${reste.toLocaleString()} Ar</td><td class="text-center"><button class="btn btn-sm btn-primary" onclick="payPartialDebt(${op.id})">Payer</button></td></tr>`;
+                        if (debtSelect) debtSelect.innerHTML += `<option value="${op.id}">${op.client} - Reste: ${reste.toLocaleString()} Ar (${op.date})</option>`;
+                    }
+                }
+            });
+
+            if (!hasDebts && debtList) {
+                debtList.innerHTML = debtSearch ? '<tr><td colspan="3" class="text-center text-muted small">Aucun client trouvé pour "' + debtSearch + '"</td></tr>' : '<tr><td colspan="3" class="text-center text-success small">Aucune dette</td></tr>';
+            }
+
+            updateDebtInfo();
+
+            if (document.getElementById('statTotalSales')) document.getElementById('statTotalSales').innerText = totalSales.toLocaleString() + ' Ar';
+            if (document.getElementById('statTotalExp')) document.getElementById('statTotalExp').innerText = totalExp.toLocaleString() + ' Ar';
+            if (document.getElementById('statNet')) document.getElementById('statNet').innerText = (globalAdvance - totalExp).toLocaleString() + ' Ar';
+
+            // --- LISTE DES TOUTES LES DEPENSES DANS L'ONGLET DEPENSE ---
+            const dailyExpListInTab = document.getElementById('dailyExpListInTab');
+            if (dailyExpListInTab) {
+                dailyExpListInTab.innerHTML = '';
+                // On affiche TOUTES les dépenses (pas seulement les filtrées)
+                const allExpenses = data.filter(op => op.type === 'EXPENSE')
+                    .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+
+                allExpenses.forEach(op => {
+                    dailyExpListInTab.innerHTML += `
                     <tr>
                         <td>
                             <div class="fw-bold text-uppercase" style="font-size:0.8rem">${op.desc || 'Sans motif'}</div>
@@ -1025,155 +1268,158 @@
                             <button class="btn btn-sm btn-light border text-danger py-0 px-2" onclick="deleteOp(${op.id})" title="Supprimer">×</button>
                         </td>
                     </tr>`;
-            });
-            if (allExpenses.length === 0) {
-                dailyExpListInTab.innerHTML = '<tr><td colspan="3" class="text-center text-muted small py-3">Aucune dépense trouvée</td></tr>';
-            }
-        }
-
-        const globalSummaryContent = document.getElementById('globalSummaryContent');
-        if (globalSummaryContent) {
-            let gSales = 0, gExp = 0, gAdv = 0;
-            let expensesDetails = {};
-            data.forEach(op => {
-                if (op.type === 'SALE') {
-                    gSales += op.total;
-                    gAdv += op.advance;
-                } else if (op.type === 'EXPENSE') {
-                    gExp += op.total;
-                    const desc = op.desc ? op.desc.trim().toUpperCase() : 'AUTRE';
-                    if (!expensesDetails[desc]) expensesDetails[desc] = 0;
-                    expensesDetails[desc] += op.total;
-                }
-            });
-            let expensesHtml = '';
-            if (Object.keys(expensesDetails).length > 0) {
-                expensesHtml = `<div class="mt-4 pt-3 border-top"><h6 class="text-danger fw-bold mb-2"><i class="bi bi-pie-chart"></i> Répartition des Dépenses</h6><ul class="list-group list-group-flush small" style="max-height: 250px; overflow-y: auto;">`;
-                Object.entries(expensesDetails).sort((a, b) => b[1] - a[1]).forEach(([desc, amount]) => {
-                    expensesHtml += `<li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 border-0 border-bottom"><span class="text-truncate me-2" title="${desc}">${desc}</span><span class="text-danger fw-bold text-nowrap">${amount.toLocaleString()} Ar</span></li>`;
                 });
-                expensesHtml += `</ul></div>`;
+                if (allExpenses.length === 0) {
+                    dailyExpListInTab.innerHTML = '<tr><td colspan="3" class="text-center text-muted small py-3">Aucune dépense trouvée</td></tr>';
+                }
             }
-            globalSummaryContent.innerHTML = `
+
+            const globalSummaryContent = document.getElementById('globalSummaryContent');
+            if (globalSummaryContent) {
+                let gSales = 0, gExp = 0, gAdv = 0;
+                let expensesDetails = {};
+                data.forEach(op => {
+                    if (op.type === 'SALE') {
+                        gSales += op.total;
+                        gAdv += op.advance;
+                    } else if (op.type === 'EXPENSE') {
+                        gExp += op.total;
+                        const desc = op.desc ? op.desc.trim().toUpperCase() : 'AUTRE';
+                        if (!expensesDetails[desc]) expensesDetails[desc] = 0;
+                        expensesDetails[desc] += op.total;
+                    }
+                });
+                let expensesHtml = '';
+                if (Object.keys(expensesDetails).length > 0) {
+                    expensesHtml = `<div class="mt-4 pt-3 border-top"><h6 class="text-danger fw-bold mb-2"><i class="bi bi-pie-chart"></i> Répartition des Dépenses</h6><ul class="list-group list-group-flush small" style="max-height: 250px; overflow-y: auto;">`;
+                    Object.entries(expensesDetails).sort((a, b) => b[1] - a[1]).forEach(([desc, amount]) => {
+                        expensesHtml += `<li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 border-0 border-bottom"><span class="text-truncate me-2" title="${desc}">${desc}</span><span class="text-danger fw-bold text-nowrap">${amount.toLocaleString()} Ar</span></li>`;
+                    });
+                    expensesHtml += `</ul></div>`;
+                }
+                globalSummaryContent.innerHTML = `
                 <div class="d-flex justify-content-between mb-2"><span>Ventes Totales:</span> <b>${gSales.toLocaleString()} Ar</b></div>
                 <div class="d-flex justify-content-between mb-2"><span>Avances Reçues:</span> <b>${gAdv.toLocaleString()} Ar</b></div>
                 <div class="d-flex justify-content-between mb-2"><span>Dépenses Totales:</span> <b>${gExp.toLocaleString()} Ar</b></div>
                 <hr><div class="d-flex justify-content-between text-success fs-5 fw-bold"><span>BÉNÉFICE NET GLOBAL:</span> <span>${(gAdv - gExp).toLocaleString()} Ar</span></div>
                 ${expensesHtml}`;
-        }
+            }
 
-        const dailySummaryList = document.getElementById('dailySummaryList');
-        if (dailySummaryList) {
-            dailySummaryList.innerHTML = '';
-            const summary = {};
-            const sortedDates = [...new Set(data.map(o => o.date))].sort();
-            sortedDates.forEach(date => {
-                summary[date] = { sales: 0, advances: 0, expenses: 0, film: 0, salesDTF: 0, salesOther: 0 };
-                data.filter(o => o.date === date).forEach(op => {
-                    if (op.type === 'SALE') { 
-                        summary[date].sales += op.total; 
-                        summary[date].advances += op.advance;
-                        if (op.items) {
-                            op.items.forEach(item => {
-                                if (item.type.toUpperCase().includes('DTF')) {
-                                    summary[date].film += parseFloat(item.qty) || 0;
-                                    summary[date].salesDTF += item.total;
-                                } else {
-                                    summary[date].salesOther += item.total;
-                                }
-                            });
+            const dailySummaryList = document.getElementById('dailySummaryList');
+            if (dailySummaryList) {
+                dailySummaryList.innerHTML = '';
+                const summary = {};
+                const sortedDates = [...new Set(data.map(o => o.date))].sort();
+                sortedDates.forEach(date => {
+                    summary[date] = { sales: 0, advances: 0, expenses: 0, film: 0, salesDTF: 0, salesOther: 0 };
+                    data.filter(o => o.date === date).forEach(op => {
+                        if (op.type === 'SALE') {
+                            summary[date].sales += op.total;
+                            summary[date].advances += op.advance;
+                            if (op.items) {
+                                op.items.forEach(item => {
+                                    if (item.type.toUpperCase().includes('DTF')) {
+                                        summary[date].film += parseFloat(item.qty) || 0;
+                                        summary[date].salesDTF += item.total;
+                                    } else {
+                                        summary[date].salesOther += item.total;
+                                    }
+                                });
+                            }
                         }
-                    }
-                    else if (op.type === 'EXPENSE') { summary[date].expenses += op.total; }
+                        else if (op.type === 'EXPENSE') { summary[date].expenses += op.total; }
+                    });
                 });
-            });
-            Object.keys(summary).sort().reverse().forEach(date => {
-                const s = summary[date];
-                const net = s.advances - s.expenses;
-                dailySummaryList.innerHTML += `<tr><td>${date}</td><td class="fw-bold text-primary">${s.film.toFixed(2)} m</td><td>${s.salesDTF.toLocaleString()} Ar</td><td>${s.salesOther.toLocaleString()} Ar</td><td>${s.advances.toLocaleString()} Ar</td><td>${s.expenses.toLocaleString()} Ar</td><td class="fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${net.toLocaleString()} Ar</td></tr>`;
-            });
-        }
-
-        const monthlySummaryList = document.getElementById('monthlySummaryList');
-        if (monthlySummaryList) {
-            monthlySummaryList.innerHTML = '';
-            const monthlyData = {};
-            data.forEach(op => {
-                const month = op.date.substring(0, 7); // "YYYY-MM"
-                if (!monthlyData[month]) monthlyData[month] = { sales: 0, advances: 0, expenses: 0 };
-                if (op.type === 'SALE') {
-                    monthlyData[month].sales += op.total;
-                    monthlyData[month].advances += op.advance;
-                } else if (op.type === 'EXPENSE') {
-                    monthlyData[month].expenses += op.total;
-                }
-            });
-            Object.keys(monthlyData).sort().reverse().forEach(month => {
-                const s = monthlyData[month];
-                const net = s.advances - s.expenses;
-                monthlySummaryList.innerHTML += `<tr><td><b class="text-uppercase">${month}</b></td><td class="text-end fw-bold">${s.sales.toLocaleString()} Ar</td><td class="text-end fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${net.toLocaleString()} Ar</td></tr>`;
-            });
-        }
-
-        const histList = document.getElementById('historyList');
-        if(histList) {
-            histList.innerHTML = '';
-            const clientSearch = document.getElementById('globalClientSearch') ? document.getElementById('globalClientSearch').value.toLowerCase() : '';
-
-            // Si recherche client active, on ignore le filtre date pour trouver tout l'historique du client
-            let dataToDisplay = data;
-            if (clientSearch) {
-                dataToDisplay = data.filter(op => op.client && op.client.toLowerCase().includes(clientSearch));
-            } else if (filterDate) {
-                dataToDisplay = data.filter(op => op.date === filterDate);
+                Object.keys(summary).sort().reverse().forEach(date => {
+                    const s = summary[date];
+                    const net = s.advances - s.expenses;
+                    dailySummaryList.innerHTML += `<tr><td>${date}</td><td class="fw-bold text-primary">${s.film.toFixed(2)} m</td><td>${s.salesDTF.toLocaleString()} Ar</td><td>${s.salesOther.toLocaleString()} Ar</td><td>${s.advances.toLocaleString()} Ar</td><td>${s.expenses.toLocaleString()} Ar</td><td class="fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${net.toLocaleString()} Ar</td></tr>`;
+                });
             }
-            
-            dataToDisplay.slice(0, 30).forEach(op => {
-                const dateBadge = `<span class="badge bg-light text-dark border ms-1" style="font-size:0.7rem">${op.date}</span>`;
-                let html = '';
-                if (op.type === 'SALE') {
-                    const reste = Math.round(op.total - op.advance);
-                    const resteDisplay = reste > 0 
-                        ? `<span class="text-danger fw-bold">Reste: ${reste.toLocaleString()} Ar</span>` 
-                        : `<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> PAYÉ</span>`;
-                    
-                    const itemsSummary = op.items ? op.items.map(i => `<span class="badge ${i.type.toUpperCase().includes('DTF') ? 'bg-primary' : 'bg-secondary'} me-1" style="font-size: 0.7rem;">${i.qty}${i.type.toUpperCase().includes('DTF') ? 'm' : ''} ${i.type}</span>`).join('') : '';
-                    const methodBadge = op.paymentMethod === 'Mvola' 
-                        ? `<span class="badge bg-warning text-dark ms-1" style="font-size:0.6rem">📱 Mvola ${op.mvolaName ? '(' + op.mvolaName + ')' : ''}</span>` 
-                        : `<span class="badge bg-light text-dark border ms-1" style="font-size:0.6rem">💶 Cash</span>`;
-                        
-                    html = `<tr><td class="text-success"><i class="bi bi-arrow-down-circle-fill fs-5"></i></td><td><div class="d-flex align-items-center"><b>Vente: ${op.client}</b> ${dateBadge} ${methodBadge}</div><div class="my-1">${itemsSummary}</div><small class="text-muted">Payé: ${op.advance.toLocaleString()} | ${resteDisplay}</small></td><td class="text-end fw-bold text-success">${op.total.toLocaleString()} Ar</td><td class="text-end text-nowrap"><button class="btn btn-sm btn-light border py-0 px-2" onclick="printInvoice(${op.id})"><i class="bi bi-printer"></i></button> <button class="btn btn-sm btn-light border text-warning py-0 px-2" onclick="editOp(${op.id})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-light border text-danger py-0 px-2" onclick="deleteOp(${op.id})">×</button></td></tr>`;
-                } else {
-                    html = `<tr><td class="text-danger"><i class="bi bi-arrow-up-circle-fill fs-5"></i></td><td><div class="d-flex align-items-center"><b>Dépense: ${op.desc || 'Sans motif'}</b> ${dateBadge}</div></td><td class="text-end fw-bold text-danger">-${(op.total || 0).toLocaleString()} Ar</td><td class="text-end text-nowrap"><button class="btn btn-sm btn-light border text-warning py-0 px-2" onclick="editOp(${op.id})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-light border text-danger py-0 px-2" onclick="deleteOp(${op.id})">×</button></td></tr>`;
+
+            const monthlySummaryList = document.getElementById('monthlySummaryList');
+            if (monthlySummaryList) {
+                monthlySummaryList.innerHTML = '';
+                const monthlyData = {};
+                data.forEach(op => {
+                    const month = op.date.substring(0, 7); // "YYYY-MM"
+                    if (!monthlyData[month]) monthlyData[month] = { sales: 0, advances: 0, expenses: 0 };
+                    if (op.type === 'SALE') {
+                        monthlyData[month].sales += op.total;
+                        monthlyData[month].advances += op.advance;
+                    } else if (op.type === 'EXPENSE') {
+                        monthlyData[month].expenses += op.total;
+                    }
+                });
+                Object.keys(monthlyData).sort().reverse().forEach(month => {
+                    const s = monthlyData[month];
+                    const net = s.advances - s.expenses;
+                    monthlySummaryList.innerHTML += `<tr><td><b class="text-uppercase">${month}</b></td><td class="text-end fw-bold">${s.sales.toLocaleString()} Ar</td><td class="text-end fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${net.toLocaleString()} Ar</td></tr>`;
+                });
+            }
+
+            const histList = document.getElementById('historyList');
+            if (histList) {
+                histList.innerHTML = '';
+                const clientSearch = document.getElementById('globalClientSearch') ? document.getElementById('globalClientSearch').value.toLowerCase() : '';
+
+                // Si recherche client active, on ignore le filtre date pour trouver tout l'historique du client
+                let dataToDisplay = data;
+                if (clientSearch) {
+                    dataToDisplay = data.filter(op => op.client && op.client.toLowerCase().includes(clientSearch));
+                } else if (filterDate) {
+                    dataToDisplay = data.filter(op => op.date === filterDate);
                 }
-                histList.innerHTML += html;
-            });
-            if(dataToDisplay.length === 0) {
-                histList.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Aucune opération trouvée</td></tr>`;
+
+                dataToDisplay.slice(0, 30).forEach(op => {
+                    const dateBadge = `<span class="badge bg-light text-dark border ms-1" style="font-size:0.7rem">${op.date}</span>`;
+                    let html = '';
+                    if (op.type === 'SALE') {
+                        const reste = Math.round(op.total - op.advance);
+                        const resteDisplay = reste > 0
+                            ? `<span class="text-danger fw-bold">Reste: ${reste.toLocaleString()} Ar</span>`
+                            : `<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> PAYÉ</span>`;
+
+                        const itemsSummary = op.items ? op.items.map(i => `<span class="badge ${i.type.toUpperCase().includes('DTF') ? 'bg-primary' : 'bg-secondary'} me-1" style="font-size: 0.7rem;">${i.qty}${i.type.toUpperCase().includes('DTF') ? 'm' : ''} ${i.type}</span>`).join('') : '';
+                        const methodBadge = op.paymentMethod === 'Mvola'
+                            ? `<span class="badge bg-warning text-dark ms-1" style="font-size:0.6rem">📱 Mvola ${op.mvolaName ? '(' + op.mvolaName + ')' : ''}</span>`
+                            : `<span class="badge bg-light text-dark border ms-1" style="font-size:0.6rem">💶 Cash</span>`;
+
+                        html = `<tr><td class="text-success"><i class="bi bi-arrow-down-circle-fill fs-5"></i></td><td><div class="d-flex align-items-center"><b>Vente: ${op.client}</b> ${dateBadge} ${methodBadge}</div><div class="my-1">${itemsSummary}</div><small class="text-muted">Payé: ${op.advance.toLocaleString()} | ${resteDisplay}</small></td><td class="text-end fw-bold text-success">${op.total.toLocaleString()} Ar</td><td class="text-end text-nowrap"><button class="btn btn-sm btn-light border py-0 px-2" onclick="printInvoice(${op.id})"><i class="bi bi-printer"></i></button> <button class="btn btn-sm btn-light border text-warning py-0 px-2" onclick="editOp(${op.id})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-light border text-danger py-0 px-2" onclick="deleteOp(${op.id})">×</button></td></tr>`;
+                    } else {
+                        html = `<tr><td class="text-danger"><i class="bi bi-arrow-up-circle-fill fs-5"></i></td><td><div class="d-flex align-items-center"><b>Dépense: ${op.desc || 'Sans motif'}</b> ${dateBadge}</div></td><td class="text-end fw-bold text-danger">-${(op.total || 0).toLocaleString()} Ar</td><td class="text-end text-nowrap"><button class="btn btn-sm btn-light border text-warning py-0 px-2" onclick="editOp(${op.id})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-light border text-danger py-0 px-2" onclick="deleteOp(${op.id})">×</button></td></tr>`;
+                    }
+                    histList.innerHTML += html;
+                });
+                if (dataToDisplay.length === 0) {
+                    histList.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Aucune opération trouvée</td></tr>`;
+                }
             }
         }
-    }
 
-    function deleteOp(id) {
-        if (!confirm("Supprimer cette opération ?")) return;
-        let data = readLocalData();
-        data = data.filter(o => o.id !== id);
-        writeLocalData(data);
-        deleteOperationRemote(id);
-        renderAll();
-    }
+        function deleteOp(id) {
+            if (!confirm("Supprimer cette opération ?")) return;
+            let data = readLocalData();
+            data = data.filter(o => o.id !== id);
+            writeLocalData(data);
+            deleteOperationRemote(id);
+            renderAll();
+        }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        const today = new Date().toLocaleDateString('en-CA');
-        const dateInput = document.getElementById('workingDateInput');
-        if(dateInput) dateInput.value = today;
-        const filterInput = document.getElementById('journalFilterDate');
-        if(filterInput) filterInput.value = today;
-        supabaseClient = setupSupabaseClient();
-        await loadFromSupabaseOrLocal();
-        renderAll();
-        subscribeRealtime();
-    });
-</script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const today = new Date().toLocaleDateString('en-CA');
+            const dateInput = document.getElementById('workingDateInput');
+            if (dateInput) dateInput.value = today;
+            const filterInput = document.getElementById('journalFilterDate');
+            if (filterInput) filterInput.value = today;
+            const manualDateInput = document.getElementById('manualDate');
+            if (manualDateInput) manualDateInput.value = today;
+            supabaseClient = setupSupabaseClient();
+            await loadFromSupabaseOrLocal();
+            renderAll();
+            subscribeRealtime();
+        });
+    </script>
 </body>
+
 </html>
