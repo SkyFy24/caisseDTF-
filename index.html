@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
- 
+
 <head>
     <!-- Lien pour les icônes -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -370,6 +370,12 @@
                         <div class="tab-pane fade" id="manualInvoiceTab">
                             <div class="p-3 border-warning card">
                                 <h6 class="mb-3 text-warning fw-bold"><i class="bi bi-receipt-cutoff"></i> Facture Manuelle Directe</h6>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-info">REPRENDRE UNE VENTE EXISTANTE (OPTIONNEL)</label>
+                                    <select id="manualSaleSelect" class="form-select-sm form-select border-info" onchange="loadSaleIntoManualInvoice(this.value)">
+                                        <option value="">-- Sélectionner une vente pour copier --</option>
+                                    </select>
+                                </div>
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold">CLIENT</label>
                                     <input type="text" id="manualClient" class="form-control form-control-sm"
@@ -940,6 +946,37 @@
             window.print();
         }
 
+        function loadSaleIntoManualInvoice(id) {
+            if (!id) return;
+            copyToManualInvoice(parseInt(id));
+            document.getElementById('manualSaleSelect').value = "";
+        }
+
+        function copyToManualInvoice(id) {
+            const op = readLocalData().find(o => o.id === id);
+            if (!op || op.type !== 'SALE') return;
+
+            document.getElementById('manualClient').value = op.client || 'Client Passant';
+            document.getElementById('manualDate').value = op.date;
+            document.getElementById('manualAdvance').value = op.advance || 0;
+            document.getElementById('manualPaymentMethod').value = op.paymentMethod || 'Cash';
+            
+            if (op.paymentMethod === 'Mvola') {
+                document.getElementById('manualMvolaName').value = op.mvolaName || '';
+            } else {
+                document.getElementById('manualMvolaName').value = '';
+            }
+            toggleManualMvolaField();
+
+            manualBasket = op.items ? JSON.parse(JSON.stringify(op.items)) : [];
+            renderManualBasket();
+
+            const tabEl = document.getElementById('tab-facture-manuelle');
+            if (tabEl) {
+                new bootstrap.Tab(tabEl).show();
+            }
+        }
+
         function saveExpense() {
             const desc = document.getElementById('expDesc').value;
             const amount = parseFloat(document.getElementById('expAmount').value) || 0;
@@ -1198,8 +1235,10 @@
 
             const debtList = document.getElementById('debtList');
             const debtSelect = document.getElementById('debtSelect');
+            const manualSaleSelect = document.getElementById('manualSaleSelect');
             if (debtList) debtList.innerHTML = '';
             if (debtSelect) debtSelect.innerHTML = '<option value="">-- Choisir une dette en cours --</option>';
+            if (manualSaleSelect) manualSaleSelect.innerHTML = '<option value="">-- Sélectionner une vente pour copier --</option>';
             let hasDebts = false;
             filteredData.forEach(op => {
                 if (op.type === 'SALE') {
@@ -1215,6 +1254,9 @@
 
             data.forEach(op => {
                 if (op.type === 'SALE') {
+                    if (manualSaleSelect) {
+                        manualSaleSelect.innerHTML += `<option value="${op.id}">${op.client} - Total: ${op.total.toLocaleString()} Ar (${op.date})</option>`;
+                    }
                     const reste = Math.round(op.total - op.advance);
                     if (reste > 0) {
                         // Filtre par recherche client si saisie
@@ -1385,7 +1427,7 @@
                             ? `<span class="badge bg-warning text-dark ms-1" style="font-size:0.6rem">📱 Mvola ${op.mvolaName ? '(' + op.mvolaName + ')' : ''}</span>`
                             : `<span class="badge bg-light text-dark border ms-1" style="font-size:0.6rem">💶 Cash</span>`;
 
-                        html = `<tr><td class="text-success"><i class="bi bi-arrow-down-circle-fill fs-5"></i></td><td><div class="d-flex align-items-center"><b>Vente: ${op.client}</b> ${dateBadge} ${methodBadge}</div><div class="my-1">${itemsSummary}</div><small class="text-muted">Payé: ${op.advance.toLocaleString()} | ${resteDisplay}</small></td><td class="text-end fw-bold text-success">${op.total.toLocaleString()} Ar</td><td class="text-end text-nowrap"><button class="btn btn-sm btn-light border py-0 px-2" onclick="printInvoice(${op.id})"><i class="bi bi-printer"></i></button> <button class="btn btn-sm btn-light border text-warning py-0 px-2" onclick="editOp(${op.id})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-light border text-danger py-0 px-2" onclick="deleteOp(${op.id})">×</button></td></tr>`;
+                        html = `<tr><td class="text-success"><i class="bi bi-arrow-down-circle-fill fs-5"></i></td><td><div class="d-flex align-items-center"><b>Vente: ${op.client}</b> ${dateBadge} ${methodBadge}</div><div class="my-1">${itemsSummary}</div><small class="text-muted">Payé: ${op.advance.toLocaleString()} | ${resteDisplay}</small></td><td class="text-end fw-bold text-success">${op.total.toLocaleString()} Ar</td><td class="text-end text-nowrap"><button class="btn btn-sm btn-light border py-0 px-2" onclick="printInvoice(${op.id})" title="Imprimer la facture"><i class="bi bi-printer"></i></button> <button class="btn btn-sm btn-light border text-info py-0 px-2" onclick="copyToManualInvoice(${op.id})" title="Copier dans Facture Manuelle"><i class="bi bi-clipboard-plus"></i></button> <button class="btn btn-sm btn-light border text-warning py-0 px-2" onclick="editOp(${op.id})" title="Modifier"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-light border text-danger py-0 px-2" onclick="deleteOp(${op.id})" title="Supprimer">×</button></td></tr>`;
                     } else {
                         html = `<tr><td class="text-danger"><i class="bi bi-arrow-up-circle-fill fs-5"></i></td><td><div class="d-flex align-items-center"><b>Dépense: ${op.desc || 'Sans motif'}</b> ${dateBadge}</div></td><td class="text-end fw-bold text-danger">-${(op.total || 0).toLocaleString()} Ar</td><td class="text-end text-nowrap"><button class="btn btn-sm btn-light border text-warning py-0 px-2" onclick="editOp(${op.id})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-light border text-danger py-0 px-2" onclick="deleteOp(${op.id})">×</button></td></tr>`;
                     }
