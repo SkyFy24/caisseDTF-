@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
- 
+
 <head>
     <!-- Lien pour les icônes -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -379,7 +379,12 @@
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold">CLIENT</label>
                                     <input type="text" id="manualClient" class="form-control form-control-sm"
-                                        placeholder="Nom du client" value="Client Passant">
+                                        placeholder="Nom du client" value="Client Passant"
+                                        oninput="updateManualSalesCheckboxList()">
+                                </div>
+                                <div class="mb-3" id="manualSalesCheckboxListContainer" style="display: none;">
+                                    <label class="form-label small fw-bold text-success"><i class="bi bi-card-list"></i> Sélectionner les ventes de ce client à regrouper</label>
+                                    <div id="manualSalesCheckboxList" class="border p-2 rounded bg-light" style="max-height: 200px; overflow-y: auto;"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold">DATE DE LA FACTURE</label>
@@ -559,6 +564,7 @@
 
         let currentBasket = [];
         let manualBasket = [];
+        let selectedManualSaleIds = [];
         let supabaseClient = null;
         let editingOriginalDate = null;
 
@@ -851,6 +857,87 @@
             if (balElement) balElement.innerText = 'Reste: ' + (total - adv).toLocaleString() + ' Ar';
         }
 
+        function updateManualSalesCheckboxList() {
+            const clientInput = document.getElementById('manualClient');
+            if (!clientInput) return;
+            const clientName = clientInput.value.trim().toLowerCase();
+            const container = document.getElementById('manualSalesCheckboxListContainer');
+            const listDiv = document.getElementById('manualSalesCheckboxList');
+            if (!container || !listDiv) return;
+
+            if (selectedManualSaleIds.length > 0) {
+                const data = readLocalData();
+                const firstSelectedSale = data.find(o => o.id === selectedManualSaleIds[0]);
+                if (firstSelectedSale && firstSelectedSale.client && !firstSelectedSale.client.toLowerCase().includes(clientName)) {
+                    selectedManualSaleIds = [];
+                    manualBasket = [];
+                    document.getElementById('manualAdvance').value = '';
+                    renderManualBasket();
+                }
+            }
+
+            if (!clientName || clientName === 'client passant') {
+                container.style.display = 'none';
+                listDiv.innerHTML = '';
+                return;
+            }
+
+            const data = readLocalData();
+            const clientSales = data.filter(op => op.type === 'SALE' && op.client && op.client.toLowerCase().includes(clientName));
+
+            if (clientSales.length === 0) {
+                container.style.display = 'none';
+                listDiv.innerHTML = '';
+                return;
+            }
+
+            container.style.display = 'block';
+            listDiv.innerHTML = '';
+            
+            clientSales.forEach(op => {
+                const isChecked = selectedManualSaleIds.includes(op.id) ? 'checked' : '';
+                const itemsSummary = op.items ? op.items.map(i => `${i.qty}${i.type.toUpperCase().includes('DTF') ? 'm' : ''} ${i.type}`).join(', ') : 'Aucun article';
+                const label = `<b>${op.date}</b> - ${op.total.toLocaleString()} Ar (Avance: ${op.advance.toLocaleString()} Ar) <br><span class="text-muted" style="font-size:0.75rem">${itemsSummary}</span>`;
+                
+                listDiv.innerHTML += `
+                    <div class="form-check py-1 border-bottom">
+                        <input class="form-check-input" type="checkbox" value="${op.id}" id="chk_sale_${op.id}" ${isChecked} onchange="toggleManualSaleSelection(${op.id}, this.checked)">
+                        <label class="form-check-label small" for="chk_sale_${op.id}" style="cursor: pointer;">
+                            ${label}
+                        </label>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleManualSaleSelection(id, checked) {
+            const data = readLocalData();
+            const op = data.find(o => o.id === id);
+            if (!op) return;
+
+            let currentAdvance = parseFloat(document.getElementById('manualAdvance').value) || 0;
+
+            if (checked) {
+                if (!selectedManualSaleIds.includes(id)) {
+                    selectedManualSaleIds.push(id);
+                    if (op.items) {
+                        op.items.forEach(item => {
+                            const clonedItem = { ...item, saleId: id };
+                            manualBasket.push(clonedItem);
+                        });
+                    }
+                    currentAdvance += op.advance || 0;
+                }
+            } else {
+                selectedManualSaleIds = selectedManualSaleIds.filter(x => x !== id);
+                manualBasket = manualBasket.filter(item => item.saleId !== id);
+                currentAdvance = Math.max(0, currentAdvance - (op.advance || 0));
+            }
+
+            document.getElementById('manualAdvance').value = currentAdvance;
+            renderManualBasket();
+        }
+
         function toggleManualMvolaField() {
             const method = document.getElementById('manualPaymentMethod').value;
             const mvolaContainer = document.getElementById('manualMvolaNameContainer');
@@ -896,6 +983,7 @@
 
             if (shouldSave) {
                 manualBasket = [];
+                selectedManualSaleIds = [];
                 document.getElementById('manualClient').value = 'Client Passant';
                 document.getElementById('manualAdvance').value = '';
                 document.getElementById('manualPaymentMethod').value = 'Cash';
@@ -906,6 +994,7 @@
                 if (manualDateInput) manualDateInput.value = today;
 
                 renderManualBasket();
+                updateManualSalesCheckboxList();
                 renderAll();
             }
         }
@@ -968,8 +1057,13 @@
             }
             toggleManualMvolaField();
 
+            selectedManualSaleIds = [id];
             manualBasket = op.items ? JSON.parse(JSON.stringify(op.items)) : [];
+            manualBasket.forEach(item => {
+                item.saleId = id;
+            });
             renderManualBasket();
+            updateManualSalesCheckboxList();
 
             const tabEl = document.getElementById('tab-facture-manuelle');
             if (tabEl) {
