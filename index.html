@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
- 
+
 <head>
     <!-- Lien pour les icônes -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -897,7 +897,18 @@
             clientSales.forEach(op => {
                 const isChecked = selectedManualSaleIds.includes(op.id) ? 'checked' : '';
                 const itemsSummary = op.items ? op.items.map(i => `${i.qty}${i.type.toUpperCase().includes('DTF') ? 'm' : ''} ${i.type}`).join(', ') : 'Aucun article';
-                const label = `<b>${op.date}</b> - ${op.total.toLocaleString()} Ar (Avance: ${op.advance.toLocaleString()} Ar) <br><span class="text-muted" style="font-size:0.75rem">${itemsSummary}</span>`;
+                
+                const reste = op.total - op.advance;
+                let statusBadge = '';
+                if (reste <= 0) {
+                    statusBadge = `<span class="badge bg-success ms-2">PAYÉ</span>`;
+                } else if (op.advance > 0) {
+                    statusBadge = `<span class="badge bg-warning text-dark ms-2">Partiel (Reste: ${reste.toLocaleString()} Ar)</span>`;
+                } else {
+                    statusBadge = `<span class="badge bg-danger ms-2">Non payé</span>`;
+                }
+
+                const label = `<b>${op.date}</b> - ${op.total.toLocaleString()} Ar (Avance: ${op.advance.toLocaleString()} Ar) ${statusBadge} <br><span class="text-muted" style="font-size:0.75rem">${itemsSummary}</span>`;
                 
                 listDiv.innerHTML += `
                     <div class="form-check py-1 border-bottom">
