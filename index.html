@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
-  
+
 <head>
     <!-- Lien pour les icônes -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -169,8 +169,6 @@
                                 data-bs-target="#expTab">Dépense</button></li>
                         <li class="nav-item"><button class="text-danger nav-link" id="tab-dette" data-bs-toggle="tab"
                                 data-bs-target="#debtTab">Dettes</button></li>
-                        <li class="nav-item"><button class="text-primary nav-link" id="tab-facture" data-bs-toggle="tab"
-                                data-bs-target="#factureTab">Facture Dette</button></li>
                         <li class="nav-item"><button class="text-warning nav-link" id="tab-facture-manuelle" data-bs-toggle="tab"
                                 data-bs-target="#manualInvoiceTab">Facture Manuelle</button></li>
                         <li class="nav-item"><button class="text-success nav-link" id="tab-global" data-bs-toggle="tab"
@@ -313,147 +311,162 @@
                             </div>
                         </div>
 
-                        <!-- NOUVEL ONGLET: FACTURE MANUELLE / DETTE -->
-                        <div class="tab-pane fade" id="factureTab">
-                            <div class="p-3 border-primary card">
-                                <h6 class="mb-3 text-primary fw-bold"><i class="bi bi-receipt"></i> Payer & Facturer une
-                                    Dette</h6>
-                                <div class="mb-3">
-                                    <label class="small fw-bold">1. SÉLECTIONNER LE CLIENT / LA DETTE</label>
-                                    <select id="debtSelect" class="form-select-sm form-select"
-                                        onchange="updateDebtInfo()"></select>
-                                </div>
 
-                                <div class="bg-light mb-3 p-2 border rounded" id="debtInfoDisplay"
-                                    style="display:none;">
-                                    <div class="d-flex justify-content-between"><small>Total de la commande:</small>
-                                        <small><b id="diTotal">0</b> Ar</small>
-                                    </div>
-                                    <div class="d-flex justify-content-between"><small>Déjà payé (Avance):</small>
-                                        <small><b id="diAdvance">0</b> Ar</small>
-                                    </div>
-                                    <div class="d-flex justify-content-between mt-1 pt-1 border-top text-danger">
-                                        <small><b>Reste à payer actuel:</b></small> <small><b id="diReste">0</b>
-                                            Ar</small>
-                                    </div>
-                                    <div id="diItemsList" class="mt-2 pt-2 border-top text-muted small"></div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="small fw-bold">2. MONTANT PAYÉ MAINTENANT</label>
-                                    <input type="number" id="debtPaymentAmount" class="form-control form-control-sm"
-                                        placeholder="Ex: 10000" step="any">
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="mb-1 small fw-bold">3. MOYEN DE PAIEMENT</label>
-                                    <select id="debtPaymentMethod" class="form-select-sm form-select"
-                                        onchange="toggleDebtMvolaField()">
-                                        <option value="Cash">💶 Espèces (Cash)</option>
-                                        <option value="Mvola">📱 Mvola</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3" id="debtMvolaNameContainer" style="display:none;">
-                                    <label class="small fw-bold text-warning">NOM DU COMPTE MVOLA</label>
-                                    <input type="text" id="debtMvolaName"
-                                        class="form-control form-control-sm border-warning" placeholder="Nom ou numéro">
-                                </div>
-
-                                <button class="mt-2 w-100 btn btn-primary btn-sm fw-bold"
-                                    onclick="processDebtPayment()"><i class="bi bi-printer"></i> ENREGISTRER & IMPRIMER
-                                    FACTURE</button>
-                            </div>
-                        </div>
 
                         <!-- ONGLET: FACTURE MANUELLE DIRECTE (SANS DEPENDANCE) -->
                         <div class="tab-pane fade" id="manualInvoiceTab">
                             <div class="p-3 border-warning card">
-                                <h6 class="mb-3 text-warning fw-bold"><i class="bi bi-receipt-cutoff"></i> Facture Manuelle Directe</h6>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-info">REPRENDRE UNE VENTE EXISTANTE (OPTIONNEL)</label>
-                                    <select id="manualSaleSelect" class="form-select-sm form-select border-info" onchange="loadSaleIntoManualInvoice(this.value)">
-                                        <option value="">-- Sélectionner une vente pour copier --</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">CLIENT</label>
-                                    <input type="text" id="manualClient" class="form-control form-control-sm"
-                                        placeholder="Nom du client" value="Client Passant"
-                                        oninput="updateManualSalesCheckboxList()">
-                                </div>
-                                <div class="mb-3" id="manualSalesCheckboxListContainer" style="display: none;">
-                                    <label class="form-label small fw-bold text-success"><i class="bi bi-card-list"></i> Sélectionner les ventes de ce client à regrouper</label>
-                                    <div id="manualSalesCheckboxList" class="border p-2 rounded bg-light" style="max-height: 200px; overflow-y: auto;"></div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">DATE DE LA FACTURE</label>
-                                    <input type="date" id="manualDate" class="form-control form-control-sm">
-                                </div>
-                                <div class="bg-light mb-3 p-2 border rounded row g-2">
-                                    <div class="col-6">
-                                        <label class="small fw-bold">PRODUIT</label>
-                                        <input list="manualItemTypesList" id="manualItemType" class="form-control form-control-sm"
-                                            placeholder="Nom du produit" value="Impression DTF"
-                                            onchange="updateManualDefaultPrice()">
-                                        <datalist id="manualItemTypesList">
-                                            <option value="Impression DTF">
-                                            <option value="Conception">
-                                            <option value="Textile / Support">
-                                            <option value="Autre">
-                                        </datalist>
-                                    </div>
-                                    <div class="col-3">
-                                        <label class="small fw-bold">QTE</label>
-                                        <input type="number" id="manualItemQty" class="form-control form-control-sm" value="1"
-                                            step="0.1">
-                                    </div>
-                                    <div class="col-3">
-                                        <label class="small fw-bold">PRIX</label>
-                                        <input type="number" id="manualItemPrice" class="form-control form-control-sm"
-                                            value="18000" step="any">
-                                    </div>
-                                    <button class="mt-2 btn btn-sm btn-warning text-dark fw-bold" onclick="addManualItem()"><i
-                                            class="bi bi-plus"></i> Ajouter au panier</button>
+                                <h6 class="mb-3 text-warning fw-bold"><i class="bi bi-receipt-cutoff"></i> Facture Manuelle</h6>
+                                
+                                <!-- Sélecteur de Mode -->
+                                <div class="mb-3 btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="manualMode" id="manualModeInvoice" checked onchange="toggleManualMode()">
+                                    <label class="btn btn-outline-warning text-dark fw-bold" for="manualModeInvoice">Facture Directe</label>
+
+                                    <input type="radio" class="btn-check" name="manualMode" id="manualModeDebt" onchange="toggleManualMode()">
+                                    <label class="btn btn-outline-primary fw-bold" for="manualModeDebt">Règlement de Dette</label>
                                 </div>
 
-                                <table class="table table-sm border">
-                                    <tbody id="manualTempList"></tbody>
-                                </table>
-
-                                <div class="bg-cash mb-3 p-2 rounded">
-                                    <div class="d-flex justify-content-between fw-bold"><span>TOTAL:</span> <span
-                                            id="manualTempTotal">0 Ar</span></div>
-                                    <div class="mt-1 row g-2">
-                                        <div class="col-6"><input type="number" id="manualAdvance"
-                                                class="form-control form-control-sm" placeholder="Avance"
-                                                oninput="calcManualBalance()" step="any"></div>
-                                        <div class="text-danger text-end col-6 fw-bold" id="manualBalance">Reste: 0 Ar
-                                        </div>
+                                <div id="manualInvoiceForm">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-info">REPRENDRE UNE VENTE EXISTANTE (OPTIONNEL)</label>
+                                        <select id="manualSaleSelect" class="form-select-sm form-select border-info" onchange="loadSaleIntoManualInvoice(this.value)">
+                                            <option value="">-- Sélectionner une vente pour copier --</option>
+                                        </select>
                                     </div>
-                                    <div class="mt-2 pt-2 border-warning border-top border-opacity-25 row g-2">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">CLIENT</label>
+                                        <input type="text" id="manualClient" class="form-control form-control-sm"
+                                            placeholder="Nom du client" value="Client Passant"
+                                            oninput="updateManualSalesCheckboxList()">
+                                    </div>
+                                    <div class="mb-3" id="manualSalesCheckboxListContainer" style="display: none;">
+                                        <label class="form-label small fw-bold text-success"><i class="bi bi-card-list"></i> Sélectionner les ventes de ce client à regrouper</label>
+                                        <div id="manualSalesCheckboxList" class="border p-2 rounded bg-light" style="max-height: 200px; overflow-y: auto;"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">DATE DE LA FACTURE</label>
+                                        <input type="date" id="manualDate" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="bg-light mb-3 p-2 border rounded row g-2">
                                         <div class="col-6">
-                                            <label class="mb-1 text-muted small fw-bold">Moyen de paiement</label>
-                                            <select id="manualPaymentMethod" class="form-select-sm form-select"
-                                                onchange="toggleManualMvolaField()">
-                                                <option value="Cash">💶 Espèces (Cash)</option>
-                                                <option value="Mvola">📱 Mvola</option>
-                                            </select>
+                                            <label class="small fw-bold">PRODUIT</label>
+                                            <input list="manualItemTypesList" id="manualItemType" class="form-control form-control-sm"
+                                                placeholder="Nom du produit" value="Impression DTF"
+                                                onchange="updateManualDefaultPrice()">
+                                            <datalist id="manualItemTypesList">
+                                                <option value="Impression DTF">
+                                                <option value="Conception">
+                                                <option value="Textile / Support">
+                                                <option value="Autre">
+                                            </datalist>
                                         </div>
-                                        <div class="col-6" id="manualMvolaNameContainer" style="display: none;">
-                                            <label class="mb-1 text-muted small fw-bold">Nom du compte Mvola</label>
-                                            <input type="text" id="manualMvolaName" class="form-control form-control-sm"
-                                                placeholder="Ex: Jean Rakoto">
+                                        <div class="col-3">
+                                            <label class="small fw-bold">QTE</label>
+                                            <input type="number" id="manualItemQty" class="form-control form-control-sm" value="1"
+                                                step="0.1">
+                                        </div>
+                                        <div class="col-3">
+                                            <label class="small fw-bold">PRIX</label>
+                                            <input type="number" id="manualItemPrice" class="form-control form-control-sm"
+                                                value="18000" step="any">
+                                        </div>
+                                        <button class="mt-2 btn btn-sm btn-warning text-dark fw-bold" onclick="addManualItem()"><i
+                                                class="bi bi-plus"></i> Ajouter au panier</button>
+                                    </div>
+
+                                    <table class="table table-sm border">
+                                        <tbody id="manualTempList"></tbody>
+                                    </table>
+
+                                    <div class="bg-cash mb-3 p-2 rounded">
+                                        <div class="d-flex justify-content-between fw-bold"><span>TOTAL:</span> <span
+                                                id="manualTempTotal">0 Ar</span></div>
+                                        <div class="mt-1 row g-2">
+                                            <div class="col-6"><input type="number" id="manualAdvance"
+                                                    class="form-control form-control-sm" placeholder="Avance"
+                                                    oninput="calcManualBalance()" step="any"></div>
+                                            <div class="text-danger text-end col-6 fw-bold" id="manualBalance">Reste: 0 Ar
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 pt-2 border-warning border-top border-opacity-25 row g-2">
+                                            <div class="col-6">
+                                                <label class="mb-1 text-muted small fw-bold">Moyen de paiement</label>
+                                                <select id="manualPaymentMethod" class="form-select-sm form-select"
+                                                    onchange="toggleManualMvolaField()">
+                                                    <option value="Cash">💶 Espèces (Cash)</option>
+                                                    <option value="Mvola">📱 Mvola</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-6" id="manualMvolaNameContainer" style="display: none;">
+                                                <label class="mb-1 text-muted small fw-bold">Nom du compte Mvola</label>
+                                                <input type="text" id="manualMvolaName" class="form-control form-control-sm"
+                                                    placeholder="Ex: Jean Rakoto">
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="w-50 btn btn-warning btn-sm fw-bold text-dark" onclick="saveAndPrintManualInvoice(true)">
+                                            <i class="bi bi-printer-fill"></i> ENREGISTRER & IMPRIMER
+                                        </button>
+                                        <button class="w-50 btn btn-outline-warning btn-sm fw-bold text-dark" onclick="saveAndPrintManualInvoice(false)">
+                                            <i class="bi bi-printer"></i> IMPRIMER UNIQUEMENT
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="d-flex gap-2">
-                                    <button class="w-50 btn btn-warning btn-sm fw-bold text-dark" onclick="saveAndPrintManualInvoice(true)">
-                                        <i class="bi bi-printer-fill"></i> ENREGISTRER & IMPRIMER
-                                    </button>
-                                    <button class="w-50 btn btn-outline-warning btn-sm fw-bold text-dark" onclick="saveAndPrintManualInvoice(false)">
-                                        <i class="bi bi-printer"></i> IMPRIMER UNIQUEMENT
-                                    </button>
+
+                                <!-- Mode Règlement de Dette -->
+                                <div id="manualDebtForm" style="display: none;">
+                                    <div class="mb-3">
+                                        <label class="small fw-bold">1. SÉLECTIONNER LE CLIENT / LA DETTE</label>
+                                        <select id="debtSelect" class="form-select-sm form-select"
+                                            onchange="updateDebtInfo()"></select>
+                                    </div>
+
+                                    <div class="bg-light mb-3 p-2 border rounded" id="debtInfoDisplay"
+                                        style="display:none;">
+                                        <div class="d-flex justify-content-between"><small>Total de la commande:</small>
+                                            <small><b id="diTotal">0</b> Ar</small>
+                                        </div>
+                                        <div class="d-flex justify-content-between"><small>Déjà payé (Avance):</small>
+                                            <small><b id="diAdvance">0</b> Ar</small>
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-1 pt-1 border-top text-danger">
+                                            <small><b>Reste à payer actuel:</b></small> <small><b id="diReste">0</b>
+                                                Ar</small>
+                                        </div>
+                                        <div id="diItemsList" class="mt-2 pt-2 border-top text-muted small"></div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="small fw-bold">2. DATE DU RÈGLEMENT</label>
+                                        <input type="date" id="debtPaymentDate" class="form-control form-control-sm">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="small fw-bold">3. MONTANT PAYÉ MAINTENANT</label>
+                                        <input type="number" id="debtPaymentAmount" class="form-control form-control-sm"
+                                            placeholder="Ex: 10000" step="any">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="mb-1 small fw-bold">4. MOYEN DE PAIEMENT</label>
+                                        <select id="debtPaymentMethod" class="form-select-sm form-select"
+                                            onchange="toggleDebtMvolaField()">
+                                            <option value="Cash">💶 Espèces (Cash)</option>
+                                            <option value="Mvola">📱 Mvola</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3" id="debtMvolaNameContainer" style="display:none;">
+                                        <label class="small fw-bold text-warning">NOM DU COMPTE MVOLA</label>
+                                        <input type="text" id="debtMvolaName"
+                                            class="form-control form-control-sm border-warning" placeholder="Nom ou numéro">
+                                    </div>
+
+                                    <button class="mt-2 w-100 btn btn-primary btn-sm fw-bold"
+                                        onclick="processDebtPayment()"><i class="bi bi-printer"></i> ENREGISTRER & IMPRIMER
+                                        FACTURE</button>
                                 </div>
                             </div>
                         </div>
@@ -594,7 +607,7 @@
                 type: op.type,
                 client: op.client || null,
                 items: op.items || null,
-                desc: op.desc || null,
+                desc: op.type === 'SALE' ? (op.debtPaymentDate || null) : (op.desc || null),
                 total: op.total || 0,
                 advance: op.advance || 0,
                 payment_method: op.paymentMethod || null,
@@ -614,7 +627,8 @@
                 advance: Number(row.advance || 0),
                 paymentMethod: row.payment_method || 'Cash',
                 mvolaName: row.mvola_name || '',
-                date: row.op_date
+                date: row.op_date,
+                debtPaymentDate: row.type === 'SALE' ? (row.desc || '') : ''
             };
         }
 
@@ -813,6 +827,12 @@
             editingOriginalDate = null;
             renderBasket();
             renderAll();
+        }
+
+        function toggleManualMode() {
+            const isDebtMode = document.getElementById('manualModeDebt').checked;
+            document.getElementById('manualInvoiceForm').style.display = isDebtMode ? 'none' : 'block';
+            document.getElementById('manualDebtForm').style.display = isDebtMode ? 'block' : 'none';
         }
 
         function updateManualDefaultPrice() {
@@ -1123,7 +1143,22 @@
                     if (isNaN(amount) || amount <= 0) return alert("Montant invalide.");
                     if (amount > reste) return alert("Le montant est supérieur au reste !");
 
+                    // Choisir le moyen de paiement
+                    let methodChoice = prompt("Moyen de paiement :\n1. Cash\n2. Mvola", "1");
+                    if (methodChoice === null) return; // Annuler l'opération
+
+                    let paymentMethod = 'Cash';
+                    let mvolaName = '';
+                    if (methodChoice.trim() === '2') {
+                        paymentMethod = 'Mvola';
+                        mvolaName = prompt("Nom du compte Mvola :", op.mvolaName || "");
+                        if (mvolaName === null) return;
+                    }
+
                     data[opIndex].advance += amount;
+                    data[opIndex].paymentMethod = paymentMethod;
+                    data[opIndex].mvolaName = mvolaName;
+                    data[opIndex].debtPaymentDate = getWorkingDate();
                     writeLocalData(data);
                     upsertOperation(data[opIndex]);
                     renderAll();
@@ -1190,11 +1225,13 @@
                 data[opIndex].paymentMethod = method;
                 data[opIndex].mvolaName = mvolaName;
 
+                const paymentDate = document.getElementById('debtPaymentDate').value || getWorkingDate();
+                data[opIndex].debtPaymentDate = paymentDate;
+
                 const resteApres = op.total - data[opIndex].advance;
                 writeLocalData(data);
                 upsertOperation(data[opIndex]);
 
-                const paymentDate = getWorkingDate();
                 printDebtReceipt(op, amount, resteAvant, resteApres, method, mvolaName, paymentDate);
 
                 // Réinitialiser les champs
@@ -1203,6 +1240,10 @@
                 document.getElementById('debtMvolaName').value = '';
                 document.getElementById('debtPaymentMethod').value = 'Cash';
                 toggleDebtMvolaField();
+
+                const today = new Date().toLocaleDateString('en-CA');
+                const debtPaymentDateInput = document.getElementById('debtPaymentDate');
+                if (debtPaymentDateInput) debtPaymentDateInput.value = today;
 
                 updateDebtInfo();
                 renderAll();
@@ -1525,7 +1566,7 @@
                         const reste = Math.round(op.total - op.advance);
                         const resteDisplay = reste > 0
                             ? `<span class="text-danger fw-bold">Reste: ${reste.toLocaleString()} Ar</span>`
-                            : `<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> PAYÉ</span>`;
+                            : `<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> PAYÉ${op.debtPaymentDate ? ' (le ' + op.debtPaymentDate + ')' : ''}</span>`;
 
                         const itemsSummary = op.items ? op.items.map(i => `<span class="badge ${i.type.toUpperCase().includes('DTF') ? 'bg-primary' : 'bg-secondary'} me-1" style="font-size: 0.7rem;">${i.qty}${i.type.toUpperCase().includes('DTF') ? 'm' : ''} ${i.type}</span>`).join('') : '';
                         const methodBadge = op.paymentMethod === 'Mvola'
@@ -1561,6 +1602,8 @@
             if (filterInput) filterInput.value = today;
             const manualDateInput = document.getElementById('manualDate');
             if (manualDateInput) manualDateInput.value = today;
+            const debtPaymentDateInput = document.getElementById('debtPaymentDate');
+            if (debtPaymentDateInput) debtPaymentDateInput.value = today;
             supabaseClient = setupSupabaseClient();
             await loadFromSupabaseOrLocal();
             renderAll();
