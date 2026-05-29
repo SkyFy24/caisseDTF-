@@ -192,6 +192,7 @@
                                         <input list="itemTypesList" id="itemType" class="form-control form-control-sm"
                                             placeholder="Nom du produit" value="Impression DTF"
                                             onchange="updateDefaultPrice()">
+                                        <textarea id="itemDesc" class="form-control form-control-sm mt-1" placeholder="Description longue (optionnelle)" rows="2"></textarea>
                                         <datalist id="itemTypesList">
                                             <option value="Impression DTF">
                                             <option value="Conception">
@@ -354,6 +355,7 @@
                                             <input list="manualItemTypesList" id="manualItemType" class="form-control form-control-sm"
                                                 placeholder="Nom du produit" value="Impression DTF"
                                                 onchange="updateManualDefaultPrice()">
+                                            <textarea id="manualItemDesc" class="form-control form-control-sm mt-1" placeholder="Description longue (optionnelle)" rows="2"></textarea>
                                             <datalist id="manualItemTypesList">
                                                 <option value="Impression DTF">
                                                 <option value="Conception">
@@ -543,18 +545,22 @@
                         </div>
                     </div>
 
-                    <div class="card mt-3">
+                    <div class="card mt-3" onmouseenter="let el=document.getElementById('historyCollapse'); let bs=bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, {toggle:false}); bs.show();" onmouseleave="let el=document.getElementById('historyCollapse'); let bs=bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, {toggle:false}); bs.hide();">
                         <div class="bg-white card-header d-flex justify-content-between align-items-center fw-bold"
-                            style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#historyCollapse">
+                            style="cursor: default;">
                             <span>Dernières Opérations</span>
-                            <div class="input-group input-group-sm w-50" onclick="event.stopPropagation()">
-                                <span class="input-group-text bg-light border-0"><i
-                                        class="bi bi-person-search"></i></span>
+                            <div class="input-group input-group-sm w-75" onclick="event.stopPropagation()">
+                                <select id="globalMethodSearch" class="form-select border-0 bg-light text-muted" style="max-width: 110px;" onchange="renderAll()">
+                                    <option value="">Tous</option>
+                                    <option value="Mvola">Mvola</option>
+                                    <option value="Cash">Cash</option>
+                                </select>
+                                <span class="input-group-text bg-light border-0 border-start"><i class="bi bi-person-search"></i></span>
                                 <input type="text" id="globalClientSearch" class="form-control border-0 bg-light"
                                     placeholder="Chercher client..." oninput="renderAll()">
                             </div>
                         </div>
-                        <div class="p-0 card-body collapse show" id="historyCollapse">
+                        <div class="p-0 card-body collapse" id="historyCollapse">
                             <div class="table-responsive">
                                 <table class="table table-sm mb-0 align-middle">
                                     <tbody id="historyList"></tbody>
@@ -747,11 +753,16 @@
         }
 
         function addItem() {
-            const type = document.getElementById('itemType').value || 'Autre Produit';
+            let type = document.getElementById('itemType').value || 'Autre Produit';
+            const descInput = document.getElementById('itemDesc');
+            if (descInput && descInput.value.trim() !== '') {
+                type += '<br><small class="text-muted" style="font-size: 0.8em;">' + descInput.value.trim().replace(/\n/g, '<br>') + '</small>';
+            }
             const qty = parseFloat(document.getElementById('itemQty').value) || 0;
             const price = parseFloat(document.getElementById('itemPrice').value) || 0;
             if (qty <= 0) return;
             currentBasket.push({ type, qty, price, total: qty * price });
+            if (descInput) descInput.value = '';
             renderBasket();
         }
 
@@ -848,11 +859,16 @@
         }
 
         function addManualItem() {
-            const type = document.getElementById('manualItemType').value || 'Autre Produit';
+            let type = document.getElementById('manualItemType').value || 'Autre Produit';
+            const descInput = document.getElementById('manualItemDesc');
+            if (descInput && descInput.value.trim() !== '') {
+                type += '<br><small class="text-muted" style="font-size: 0.8em;">' + descInput.value.trim().replace(/\n/g, '<br>') + '</small>';
+            }
             const qty = parseFloat(document.getElementById('manualItemQty').value) || 0;
             const price = parseFloat(document.getElementById('manualItemPrice').value) || 0;
             if (qty <= 0) return;
             manualBasket.push({ type, qty, price, total: qty * price });
+            if (descInput) descInput.value = '';
             renderManualBasket();
         }
 
@@ -864,7 +880,8 @@
             manualBasket.forEach((item, index) => {
                 total += item.total;
                 let unit = item.type.toUpperCase().includes('DTF') ? 'm' : '';
-                list.innerHTML += `<tr><td>${item.type}</td><td>${item.qty}${unit}</td><td>${item.total.toLocaleString()}</td><td onclick="manualBasket.splice(${index},1);renderManualBasket()" class="text-danger" style="cursor:pointer">x</td></tr>`;
+                let dateLabel = item.originalDate ? `<br><small class="text-muted">Cmd: ${item.originalDate}</small>` : '';
+                list.innerHTML += `<tr><td>${item.type}${dateLabel}</td><td>${item.qty}${unit}</td><td>${item.total.toLocaleString()}</td><td onclick="manualBasket.splice(${index},1);renderManualBasket()" class="text-danger" style="cursor:pointer">x</td></tr>`;
             });
             document.getElementById('manualTempTotal').innerText = total.toLocaleString() + ' Ar';
             calcManualBalance();
@@ -953,7 +970,7 @@
                     selectedManualSaleIds.push(id);
                     if (op.items) {
                         op.items.forEach(item => {
-                            const clonedItem = { ...item, saleId: id };
+                            const clonedItem = { ...item, saleId: id, originalDate: op.date };
                             manualBasket.push(clonedItem);
                         });
                     }
@@ -1033,7 +1050,8 @@
         function printDirectInvoice(client, dateStr, items, total, advance, paymentMethod, mvolaName) {
             let itemsHtml = items.map(i => {
                 const uPrice = i.price || (i.total / i.qty);
-                return `<tr><td>${i.type}</td><td class="text-center">${i.qty}</td><td class="text-end">${uPrice.toLocaleString()}</td><td class="text-end">${i.total.toLocaleString()}</td></tr>`;
+                let dateLabel = i.originalDate ? `<br><span style="font-size: 0.8em; color: #666;">Cmd: ${i.originalDate}</span>` : '';
+                return `<tr><td>${i.type}${dateLabel}</td><td class="text-center">${i.qty}</td><td class="text-end">${uPrice.toLocaleString()}</td><td class="text-end">${i.total.toLocaleString()}</td></tr>`;
             }).join('');
 
             let pInfo = paymentMethod || 'Cash';
@@ -1092,6 +1110,7 @@
             manualBasket = op.items ? JSON.parse(JSON.stringify(op.items)) : [];
             manualBasket.forEach(item => {
                 item.saleId = id;
+                item.originalDate = op.date;
             });
             renderManualBasket();
             updateManualSalesCheckboxList();
@@ -1550,6 +1569,7 @@
             if (histList) {
                 histList.innerHTML = '';
                 const clientSearch = document.getElementById('globalClientSearch') ? document.getElementById('globalClientSearch').value.toLowerCase() : '';
+                const methodSearch = document.getElementById('globalMethodSearch') ? document.getElementById('globalMethodSearch').value : '';
 
                 // Si recherche client active, on ignore le filtre date pour trouver tout l'historique du client
                 let dataToDisplay = data;
@@ -1557,6 +1577,10 @@
                     dataToDisplay = data.filter(op => op.client && op.client.toLowerCase().includes(clientSearch));
                 } else if (filterDate) {
                     dataToDisplay = data.filter(op => op.date === filterDate);
+                }
+
+                if (methodSearch) {
+                    dataToDisplay = dataToDisplay.filter(op => op.paymentMethod === methodSearch);
                 }
 
                 dataToDisplay.slice(0, 30).forEach(op => {
