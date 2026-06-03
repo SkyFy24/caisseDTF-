@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
-   
+
 <head>
     <!-- Lien pour les icônes -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -74,6 +74,7 @@
 </head>
 
 <body>
+    <datalist id="clientList"></datalist>
     <!-- Conteneur pour l'impression (caché à l'écran) -->
     <div id="invoiceStub" style="display: none;"></div>
 
@@ -189,7 +190,7 @@
                                     <input type="hidden" id="editingSaleId">
                                     <input type="hidden" id="editingSaleDate">
                                     <input type="text" id="orderClient" class="form-control form-control-sm"
-                                        placeholder="Nom du client">
+                                        placeholder="Nom du client" list="clientList">
                                 </div>
                                 <div class="bg-light mb-3 p-2 border rounded row g-2">
                                     <div class="col-6">
@@ -390,7 +391,7 @@
                                         <label class="form-label small fw-bold">CLIENT</label>
                                         <input type="text" id="manualClient" class="form-control form-control-sm"
                                             placeholder="Nom du client" value="Client Passant"
-                                            oninput="updateManualSalesCheckboxList()">
+                                            oninput="updateManualSalesCheckboxList()" list="clientList">
                                     </div>
                                     <div class="mb-3" id="manualSalesCheckboxListContainer" style="display: none;">
                                         <label class="form-label small fw-bold text-success"><i class="bi bi-card-list"></i> Sélectionner les ventes de ce client à regrouper</label>
@@ -459,11 +460,11 @@
                                         </div>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <button class="w-50 btn btn-warning btn-sm fw-bold text-dark" onclick="saveAndPrintManualInvoice(true)">
-                                            <i class="bi bi-printer-fill"></i> ENREGISTRER & IMPRIMER
+                                        <button class="w-50 btn btn-warning btn-sm fw-bold text-dark" onclick="saveAndPrintManualInvoice(true, false)">
+                                            <i class="bi bi-save"></i> ENREGISTRER
                                         </button>
-                                        <button class="w-50 btn btn-outline-warning btn-sm fw-bold text-dark" onclick="saveAndPrintManualInvoice(false)">
-                                            <i class="bi bi-printer"></i> IMPRIMER UNIQUEMENT
+                                        <button class="w-50 btn btn-outline-warning btn-sm fw-bold text-dark" onclick="saveAndPrintManualInvoice(false, true)">
+                                            <i class="bi bi-printer"></i> IMPRIMER APRES ENREGISTREMENT
                                         </button>
                                     </div>
                                 </div>
@@ -582,6 +583,7 @@
         let currentBasket = [];
         let manualBasket = [];
         let selectedManualSaleIds = [];
+        let lastManualInvoiceForPrint = null;
         let supabaseClient = null;
         let myInitiatedIds = new Set();
 
@@ -1149,8 +1151,26 @@
             }
         }
 
-        function saveAndPrintManualInvoice(shouldSave) {
+        function saveAndPrintManualInvoice(shouldSave, shouldPrint = true) {
             const client = document.getElementById('manualClient').value || 'Client Passant';
+            
+            if (!shouldSave && shouldPrint && manualBasket.length === 0) {
+                if (lastManualInvoiceForPrint) {
+                    printDirectInvoice(
+                        lastManualInvoiceForPrint.client, 
+                        lastManualInvoiceForPrint.dateStr, 
+                        lastManualInvoiceForPrint.manualBasket, 
+                        lastManualInvoiceForPrint.total, 
+                        lastManualInvoiceForPrint.advance, 
+                        lastManualInvoiceForPrint.paymentMethod, 
+                        lastManualInvoiceForPrint.mvolaName
+                    );
+                    return;
+                } else {
+                    return alert("Aucune facture à imprimer.");
+                }
+            }
+
             if (manualBasket.length === 0) return alert("Le panier est vide.");
 
             const paymentMethod = document.getElementById('manualPaymentMethod').value;
@@ -1163,6 +1183,7 @@
             const advance = parseFloat(document.getElementById('manualAdvance').value) || 0;
 
             if (shouldSave) {
+                lastManualInvoiceForPrint = { client, dateStr, manualBasket: [...manualBasket], total, advance, paymentMethod, mvolaName };
                 if (selectedManualSaleIds.length > 0) {
                     if (!confirm("Attention : L'enregistrement d'une facture regroupée va SUPPRIMER les anciennes ventes individuelles pour éviter les doublons dans la caisse. Continuer ?")) return;
                     
@@ -1193,8 +1214,10 @@
                 upsertOperation(order).catch(err => console.error('Erreur sync:', err));
             }
 
-            // Impression
-            printDirectInvoice(client, dateStr, manualBasket, total, advance, paymentMethod, mvolaName);
+            if (shouldPrint) {
+                // Impression
+                printDirectInvoice(client, dateStr, manualBasket, total, advance, paymentMethod, mvolaName);
+            }
 
             if (shouldSave) {
                 manualBasket = [];
@@ -1265,7 +1288,7 @@
             if (!op || op.type !== 'SALE') return;
 
             document.getElementById('manualClient').value = op.client || 'Client Passant';
-            document.getElementById('manualDate').value = op.date;
+            // document.getElementById('manualDate').value = op.date;
             document.getElementById('manualAdvance').value = op.advance || 0;
             document.getElementById('manualPaymentMethod').value = op.paymentMethod || 'Cash';
             
@@ -1645,6 +1668,20 @@
             const data = readLocalData();
             const filterInput = document.getElementById('journalFilterDate');
             const filterDate = filterInput && filterInput.value ? filterInput.value : null;
+
+            const clientsSet = new Set();
+            data.forEach(op => {
+                if (op.type === 'SALE' && op.client && op.client !== 'Client Passant') {
+                    clientsSet.add(op.client.trim());
+                }
+            });
+            const clientList = document.getElementById('clientList');
+            if (clientList) {
+                clientList.innerHTML = '';
+                [...clientsSet].sort().forEach(c => {
+                    clientList.innerHTML += `<option value="${c}">`;
+                });
+            }
 
             const filteredData = filterDate ? data.filter(op => op.date === filterDate) : data;
 
