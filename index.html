@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
-  
+
 <head>
     <!-- Lien pour les icônes -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -88,7 +88,10 @@
 
         <div class="p-4 container-fluid">
             <!-- Bouton pour cacher/montrer les stats -->
-            <div class="d-flex justify-content-end mb-2">
+            <div class="d-flex justify-content-end mb-2 gap-2">
+                <button class="btn btn-sm btn-danger fw-bold" onclick="resetCaisse()">
+                    <i class="bi bi-trash"></i> Reset Caisse
+                </button>
                 <button class="btn btn-sm btn-light text-muted border" type="button" data-bs-toggle="collapse"
                     data-bs-target="#statsCollapse" aria-expanded="true" aria-controls="statsCollapse"
                     onclick="const icon = this.querySelector('i'); if(icon.classList.contains('bi-chevron-up')) { icon.classList.replace('bi-chevron-up', 'bi-chevron-down'); } else { icon.classList.replace('bi-chevron-down', 'bi-chevron-up'); }"
@@ -183,6 +186,8 @@
                             <div class="p-3 card">
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold">CLIENT</label>
+                                    <input type="hidden" id="editingSaleId">
+                                    <input type="hidden" id="editingSaleDate">
                                     <input type="text" id="orderClient" class="form-control form-control-sm"
                                         placeholder="Nom du client">
                                 </div>
@@ -255,6 +260,8 @@
                                 <h6 class="mb-3 fw-bold">Nouvelle Dépense</h6>
                                 <div class="mb-2">
                                     <label class="small fw-bold">MOTIF / OBJET</label>
+                                    <input type="hidden" id="editingExpId">
+                                    <input type="hidden" id="editingExpDate">
                                     <input type="text" id="expDesc" class="form-control form-control-sm"
                                         placeholder="Ex: Achat encre, électricité...">
                                 </div>
@@ -310,6 +317,59 @@
                                     </table>
                                 </div>
                             </div>
+
+                            <!-- Card: Enregistrer un Règlement -->
+                            <div class="p-3 border-primary card mt-3 shadow-sm" id="debtSettlementCard" style="display: none;">
+                                <h6 class="mb-3 text-primary fw-bold"><i class="bi bi-wallet2"></i> Enregistrer un Règlement</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="small fw-bold">CLIENT SÉLECTIONNÉ</label>
+                                    <input type="text" id="selectedDebtClient" class="form-control form-control-sm fw-bold text-primary" readonly>
+                                </div>
+
+                                <div class="bg-light mb-3 p-2 border rounded" id="debtInfoDisplay" style="display:none;">
+                                    <div class="fw-bold mb-2 small text-primary"><i class="bi bi-card-list"></i> Choisir les factures à régler :</div>
+                                    <div id="debtMultiList" class="mb-3 max-vh-50 overflow-y-auto"></div>
+                                    <div class="d-flex justify-content-between mt-1 pt-1 border-top text-danger fw-bold">
+                                        <small>Reste Total Sélectionné:</small> <small><span id="diTotalReste">0 Ar</span></small>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="small fw-bold">DATE DU RÈGLEMENT</label>
+                                    <input type="date" id="debtPaymentDate" class="form-control form-control-sm">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="small fw-bold">MONTANT PAYÉ MAINTENANT</label>
+                                    <input type="number" id="debtPaymentAmount" class="form-control form-control-sm"
+                                        placeholder="Ex: 10000" step="any">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="mb-1 small fw-bold">MOYEN DE PAIEMENT</label>
+                                    <select id="debtPaymentMethod" class="form-select-sm form-select"
+                                        onchange="toggleDebtMvolaField()">
+                                        <option value="Cash">💶 Espèces (Cash)</option>
+                                        <option value="Mvola">📱 Mvola</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3" id="debtMvolaNameContainer" style="display:none;">
+                                    <label class="small fw-bold text-warning">NOM DU COMPTE MVOLA</label>
+                                    <input type="text" id="debtMvolaName"
+                                        class="form-control form-control-sm border-warning" placeholder="Nom ou numéro">
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button class="w-50 btn btn-primary btn-sm fw-bold text-white" onclick="processDebtPayment()">
+                                        <i class="bi bi-printer"></i> ENREGISTRER
+                                    </button>
+                                    <button class="w-50 btn btn-outline-secondary btn-sm fw-bold" onclick="cancelDebtPayment()">
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
 
@@ -319,15 +379,6 @@
                             <div class="p-3 border-warning card">
                                 <h6 class="mb-3 text-warning fw-bold"><i class="bi bi-receipt-cutoff"></i> Facture Manuelle</h6>
                                 
-                                <!-- Sélecteur de Mode -->
-                                <div class="mb-3 btn-group w-100" role="group">
-                                    <input type="radio" class="btn-check" name="manualMode" id="manualModeInvoice" checked onchange="toggleManualMode()">
-                                    <label class="btn btn-outline-warning text-dark fw-bold" for="manualModeInvoice">Facture Directe</label>
-
-                                    <input type="radio" class="btn-check" name="manualMode" id="manualModeDebt" onchange="toggleManualMode()">
-                                    <label class="btn btn-outline-primary fw-bold" for="manualModeDebt">Règlement de Dette</label>
-                                </div>
-
                                 <div id="manualInvoiceForm">
                                     <div class="mb-3">
                                         <label class="form-label small fw-bold text-info">REPRENDRE UNE VENTE EXISTANTE (OPTIONNEL)</label>
@@ -416,60 +467,6 @@
                                         </button>
                                     </div>
                                 </div>
-
-                                <!-- Mode Règlement de Dette -->
-                                <div id="manualDebtForm" style="display: none;">
-                                    <div class="mb-3">
-                                        <label class="small fw-bold">1. SÉLECTIONNER LE CLIENT / LA DETTE</label>
-                                        <select id="debtSelect" class="form-select-sm form-select"
-                                            onchange="updateDebtInfo()"></select>
-                                    </div>
-
-                                    <div class="bg-light mb-3 p-2 border rounded" id="debtInfoDisplay"
-                                        style="display:none;">
-                                        <div class="d-flex justify-content-between"><small>Total de la commande:</small>
-                                            <small><b id="diTotal">0</b> Ar</small>
-                                        </div>
-                                        <div class="d-flex justify-content-between"><small>Déjà payé (Avance):</small>
-                                            <small><b id="diAdvance">0</b> Ar</small>
-                                        </div>
-                                        <div class="d-flex justify-content-between mt-1 pt-1 border-top text-danger">
-                                            <small><b>Reste à payer actuel:</b></small> <small><b id="diReste">0</b>
-                                                Ar</small>
-                                        </div>
-                                        <div id="diItemsList" class="mt-2 pt-2 border-top text-muted small"></div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="small fw-bold">2. DATE DU RÈGLEMENT</label>
-                                        <input type="date" id="debtPaymentDate" class="form-control form-control-sm">
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="small fw-bold">3. MONTANT PAYÉ MAINTENANT</label>
-                                        <input type="number" id="debtPaymentAmount" class="form-control form-control-sm"
-                                            placeholder="Ex: 10000" step="any">
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="mb-1 small fw-bold">4. MOYEN DE PAIEMENT</label>
-                                        <select id="debtPaymentMethod" class="form-select-sm form-select"
-                                            onchange="toggleDebtMvolaField()">
-                                            <option value="Cash">💶 Espèces (Cash)</option>
-                                            <option value="Mvola">📱 Mvola</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-3" id="debtMvolaNameContainer" style="display:none;">
-                                        <label class="small fw-bold text-warning">NOM DU COMPTE MVOLA</label>
-                                        <input type="text" id="debtMvolaName"
-                                            class="form-control form-control-sm border-warning" placeholder="Nom ou numéro">
-                                    </div>
-
-                                    <button class="mt-2 w-100 btn btn-primary btn-sm fw-bold"
-                                        onclick="processDebtPayment()"><i class="bi bi-printer"></i> ENREGISTRER & IMPRIMER
-                                        FACTURE</button>
-                                </div>
                             </div>
                         </div>
 
@@ -537,6 +534,7 @@
                                             <th>Encaissement</th>
                                             <th>Dépenses</th>
                                             <th>Net</th>
+                                            <th class="text-center no-print" style="width: 80px;">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="dailySummaryList"></tbody>
@@ -585,7 +583,7 @@
         let manualBasket = [];
         let selectedManualSaleIds = [];
         let supabaseClient = null;
-        let editingOriginalDate = null;
+        let myInitiatedIds = new Set();
 
         function setupSupabaseClient() {
             if (!window.supabase || SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
@@ -607,6 +605,16 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
+        function saveAndSortData(data) {
+            data.sort((a, b) => {
+                const dateA = a.date || '';
+                const dateB = b.date || '';
+                if (dateB !== dateA) return dateB.localeCompare(dateA);
+                return (Number(b.id) || 0) - (Number(a.id) || 0);
+            });
+            writeLocalData(data);
+        }
+
         function toDbOperation(op) {
             return {
                 id: op.id,
@@ -623,18 +631,33 @@
         }
 
         function fromDbOperation(row) {
+            let parsedItems = [];
+            if (row.items) {
+                if (Array.isArray(row.items)) {
+                    parsedItems = row.items;
+                } else if (typeof row.items === 'string') {
+                    try {
+                        parsedItems = JSON.parse(row.items);
+                        if (typeof parsedItems === 'string') {
+                            parsedItems = JSON.parse(parsedItems);
+                        }
+                    } catch (e) {
+                        parsedItems = [];
+                    }
+                }
+            }
             return {
                 id: Number(row.id),
                 type: row.type,
                 client: row.client || '',
-                items: row.items || [],
+                items: Array.isArray(parsedItems) ? parsedItems : [],
                 desc: row.desc || '',
                 total: Number(row.total || 0),
                 advance: Number(row.advance || 0),
                 paymentMethod: row.payment_method || 'Cash',
                 mvolaName: row.mvola_name || '',
-                date: row.op_date,
-                debtPaymentDate: row.type === 'SALE' ? (row.desc || '') : ''
+                date: row.op_date ? row.op_date.substring(0, 10) : '',
+                debtPaymentDate: row.type === 'SALE' ? (row.desc ? row.desc.substring(0, 10) : '') : ''
             };
         }
 
@@ -647,7 +670,7 @@
                     .order('op_date', { ascending: false })
                     .order('id', { ascending: false });
                 if (error) throw error;
-                writeLocalData((data || []).map(fromDbOperation));
+                saveAndSortData((data || []).map(fromDbOperation));
             } catch (error) {
                 console.error('Erreur chargement Supabase:', error);
             }
@@ -655,6 +678,7 @@
 
         async function upsertOperation(op) {
             if (!supabaseClient) return;
+            myInitiatedIds.add(op.id);
             const { error } = await supabaseClient
                 .from(SUPABASE_TABLE)
                 .upsert(toDbOperation(op), { onConflict: 'id' });
@@ -663,6 +687,7 @@
 
         async function deleteOperationRemote(id) {
             if (!supabaseClient) return;
+            myInitiatedIds.add(id);
             const { error } = await supabaseClient
                 .from(SUPABASE_TABLE)
                 .delete()
@@ -700,29 +725,121 @@
                 });
         }
 
+        function playNotificationSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const now = ctx.currentTime;
+                
+                // Note 1 (Mi5)
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(659.25, now);
+                gain1.gain.setValueAtTime(0.08, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.3);
+                
+                // Note 2 (La5)
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(880.00, now + 0.08);
+                gain2.gain.setValueAtTime(0.08, now + 0.08);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.08);
+                osc2.stop(now + 0.4);
+            } catch (e) {
+                console.error("Audio error:", e);
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toastEl = document.getElementById('liveToast');
+            const messageEl = document.getElementById('toastMessage');
+            if (toastEl && messageEl) {
+                messageEl.innerText = message;
+                toastEl.className = `toast align-items-center text-white border-0 bg-${type}`;
+                const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+                toast.show();
+            }
+        }
+
+        function triggerDesktopNotification(title, body) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(title, { body: body });
+            }
+        }
+
         function handleRealtimeChange(payload) {
             let data = readLocalData();
             const eventType = payload.eventType;
             const newRecord = payload.new ? fromDbOperation(payload.new) : null;
             const oldId = payload.old ? Number(payload.old.id) : (newRecord ? newRecord.id : null);
 
-            if (eventType === 'INSERT') {
-                if (!data.find(o => o.id === newRecord.id)) data.unshift(newRecord);
-            } else if (eventType === 'UPDATE') {
-                const idx = data.findIndex(o => o.id === newRecord.id);
-                if (idx !== -1) data[idx] = newRecord;
-                else data.unshift(newRecord);
-            } else if (eventType === 'DELETE') {
-                data = data.filter(o => o.id !== oldId);
+            let isMyAction = false;
+            const targetId = newRecord ? newRecord.id : oldId;
+            if (myInitiatedIds.has(targetId)) {
+                isMyAction = true;
+                myInitiatedIds.delete(targetId);
             }
 
-            // Tri constant : Date DESC, puis ID DESC
-            data.sort((a, b) => {
-                if (b.date !== a.date) return b.date.localeCompare(a.date);
-                return b.id - a.id;
-            });
+            if (eventType === 'INSERT') {
+                if (!data.find(o => o.id === newRecord.id)) {
+                    data.unshift(newRecord);
+                    if (!isMyAction) {
+                        const clientName = newRecord.client || 'Client';
+                        const typeLabel = newRecord.type === 'SALE' ? 'Vente' : 'Dépense';
+                        const amount = newRecord.total.toLocaleString();
+                        const msg = `Nouveau : ${typeLabel} de ${clientName} (${amount} Ar)`;
+                        showToast(msg, 'success');
+                        triggerDesktopNotification("Mouvement de Caisse", msg);
+                        playNotificationSound();
+                    }
+                }
+            } else if (eventType === 'UPDATE') {
+                const idx = data.findIndex(o => o.id === newRecord.id);
+                if (idx !== -1) {
+                    data[idx] = newRecord;
+                    if (!isMyAction) {
+                        const clientName = newRecord.client || 'Client';
+                        const typeLabel = newRecord.type === 'SALE' ? 'Vente' : 'Dépense';
+                        const amount = newRecord.total.toLocaleString();
+                        const msg = `Mise à jour : ${typeLabel} de ${clientName} (${amount} Ar)`;
+                        showToast(msg, 'warning');
+                        triggerDesktopNotification("Modification de Caisse", msg);
+                        playNotificationSound();
+                    }
+                } else {
+                    data.unshift(newRecord);
+                    if (!isMyAction) {
+                        const clientName = newRecord.client || 'Client';
+                        const typeLabel = newRecord.type === 'SALE' ? 'Vente' : 'Dépense';
+                        const amount = newRecord.total.toLocaleString();
+                        const msg = `Nouveau : ${typeLabel} de ${clientName} (${amount} Ar)`;
+                        showToast(msg, 'success');
+                        triggerDesktopNotification("Mouvement de Caisse", msg);
+                        playNotificationSound();
+                    }
+                }
+            } else if (eventType === 'DELETE') {
+                const oldRecord = data.find(o => o.id === oldId);
+                data = data.filter(o => o.id !== oldId);
+                if (!isMyAction && oldRecord) {
+                    const clientName = oldRecord.client || 'Client';
+                    const typeLabel = oldRecord.type === 'SALE' ? 'Vente' : 'Dépense';
+                    const msg = `Suppression : ${typeLabel} de ${clientName}`;
+                    showToast(msg, 'danger');
+                    triggerDesktopNotification("Suppression Caisse", msg);
+                    playNotificationSound();
+                }
+            }
 
-            writeLocalData(data);
+            saveAndSortData(data);
             renderAll();
         }
 
@@ -735,9 +852,25 @@
             if (error) throw error;
         }
 
+        async function resetCaisse() {
+            if (!confirm("Voulez-vous vraiment remettre toute la caisse à 0 ? Cette action est irréversible !")) return;
+            if (!confirm("Êtes-vous ABSOLUMENT sûr de vouloir tout supprimer ?")) return;
+            
+            writeLocalData([]);
+            try {
+                await deleteAllOperationsRemote();
+            } catch (err) {
+                console.error("Erreur suppression:", err);
+            }
+            renderAll();
+            alert("Caisse remise à 0 avec succès !");
+        }
+
         function getWorkingDate() {
             const dateInput = document.getElementById('workingDateInput');
-            return (dateInput && dateInput.value) ? dateInput.value : new Date().toLocaleDateString('en-CA');
+            if (dateInput && dateInput.value) return dateInput.value;
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         }
 
         function updateDefaultPrice() {
@@ -809,23 +942,50 @@
 
             const paymentMethod = document.getElementById('paymentMethod').value;
             const mvolaName = paymentMethod === 'Mvola' ? document.getElementById('mvolaName').value : '';
-            const finalDate = editingOriginalDate ? editingOriginalDate : getWorkingDate();
+            
+            const editId = document.getElementById('editingSaleId').value;
+            const editDate = document.getElementById('editingSaleDate').value;
+            const finalDate = editDate ? editDate : getWorkingDate();
+            const advance = parseFloat(document.getElementById('orderAdvance').value) || 0;
+            
+            const orderId = editId ? parseInt(editId) : Date.now();
+            let data = readLocalData();
+            
+            let payments = [];
+            if (editId) {
+                const oldOp = data.find(o => o.id === orderId);
+                if (oldOp && oldOp.payments) {
+                    payments = [...oldOp.payments];
+                    if (payments.length > 0) {
+                        payments[0].amount = advance;
+                        payments[0].date = finalDate;
+                        payments[0].method = paymentMethod;
+                        payments[0].mvolaName = mvolaName;
+                    }
+                }
+            }
+            if (payments.length === 0) {
+                payments = [{ date: finalDate, amount: advance, method: paymentMethod, mvolaName: mvolaName }];
+            }
 
             const order = {
-                id: Date.now(),
+                id: orderId,
                 type: 'SALE',
                 client,
                 items: [...currentBasket],
                 total: currentBasket.reduce((sum, i) => sum + i.total, 0),
-                advance: parseFloat(document.getElementById('orderAdvance').value) || 0,
+                advance: advance,
                 paymentMethod: paymentMethod,
                 mvolaName: mvolaName,
-                date: finalDate
+                date: finalDate,
+                payments: payments
             };
 
-            let data = readLocalData();
+            if (editId) {
+                data = data.filter(o => o.id !== orderId);
+            }
             data.unshift(order);
-            writeLocalData(data);
+            saveAndSortData(data);
             upsertOperation(order).catch(err => console.error('Erreur sync:', err));
 
             currentBasket = [];
@@ -833,17 +993,12 @@
             document.getElementById('orderAdvance').value = '';
             document.getElementById('paymentMethod').value = 'Cash';
             document.getElementById('mvolaName').value = '';
+            document.getElementById('editingSaleId').value = '';
+            document.getElementById('editingSaleDate').value = '';
             toggleMvolaField();
 
-            editingOriginalDate = null;
             renderBasket();
             renderAll();
-        }
-
-        function toggleManualMode() {
-            const isDebtMode = document.getElementById('manualModeDebt').checked;
-            document.getElementById('manualInvoiceForm').style.display = isDebtMode ? 'none' : 'block';
-            document.getElementById('manualDebtForm').style.display = isDebtMode ? 'block' : 'none';
         }
 
         function updateManualDefaultPrice() {
@@ -1008,6 +1163,17 @@
             const advance = parseFloat(document.getElementById('manualAdvance').value) || 0;
 
             if (shouldSave) {
+                if (selectedManualSaleIds.length > 0) {
+                    if (!confirm("Attention : L'enregistrement d'une facture regroupée va SUPPRIMER les anciennes ventes individuelles pour éviter les doublons dans la caisse. Continuer ?")) return;
+                    
+                    let data = readLocalData();
+                    selectedManualSaleIds.forEach(oldId => {
+                        data = data.filter(o => o.id !== oldId);
+                        deleteOperationRemote(oldId);
+                    });
+                    writeLocalData(data);
+                }
+
                 const order = {
                     id: Date.now(),
                     type: 'SALE',
@@ -1017,12 +1183,13 @@
                     advance: advance,
                     paymentMethod: paymentMethod,
                     mvolaName: mvolaName,
-                    date: dateStr
+                    date: dateStr,
+                    payments: [{ date: dateStr, amount: advance, method: paymentMethod, mvolaName: mvolaName }]
                 };
 
                 let data = readLocalData();
                 data.unshift(order);
-                writeLocalData(data);
+                saveAndSortData(data);
                 upsertOperation(order).catch(err => console.error('Erreur sync:', err));
             }
 
@@ -1057,6 +1224,8 @@
             let pInfo = paymentMethod || 'Cash';
             if (pInfo === 'Mvola' && mvolaName) pInfo += ` (${mvolaName})`;
 
+            const paymentDate = new Date().toLocaleDateString('en-CA');
+
             const stubHtml = `
         <div style="max-width: 450px; margin: 20px auto; color: black; font-family: monospace;">
             <h3 class="mb-0 text-center fw-bold">DTF PRO EMOPRINT</h3>
@@ -1064,7 +1233,8 @@
             <p class="mb-0 text-center small">Tél: 034 39 978 25</p>
             <p class="mb-2 text-muted text-center small">Facture / Reçu</p>
             <div class="mb-3 border-2 border-bottom border-dark"></div>
-            <p class="mb-1"><b>Date :</b> ${dateStr}</p>
+            <p class="mb-1"><b>Date Facture :</b> ${dateStr}</p>
+            <p class="mb-1"><b>Date Paiement :</b> ${paymentDate}</p>
             <p class="mb-1"><b>Client :</b> ${client}</p>
             <table class="table table-borderless table-sm border-bottom border-dark">
                 <thead><tr><th>Désignation</th><th class="text-center">Qté</th><th class="text-end">PU</th><th class="text-end">Total</th></tr></thead>
@@ -1126,10 +1296,12 @@
             const amount = parseFloat(document.getElementById('expAmount').value) || 0;
             if (!desc || amount <= 0) return;
 
-            const finalDate = editingOriginalDate ? editingOriginalDate : getWorkingDate();
+            const editId = document.getElementById('editingExpId').value;
+            const editDate = document.getElementById('editingExpDate').value;
+            const finalDate = editDate ? editDate : getWorkingDate();
 
             const exp = {
-                id: Date.now(),
+                id: editId ? parseInt(editId) : Date.now(),
                 type: 'EXPENSE',
                 desc,
                 total: amount,
@@ -1137,141 +1309,188 @@
             };
 
             let data = readLocalData();
+            if (editId) {
+                data = data.filter(o => o.id !== exp.id);
+            }
             data.unshift(exp);
-            writeLocalData(data);
+            saveAndSortData(data);
             upsertOperation(exp).catch(err => console.error('Erreur sync:', err));
 
             document.getElementById('expDesc').value = '';
             document.getElementById('expAmount').value = '';
-            editingOriginalDate = null;
+            document.getElementById('editingExpId').value = '';
+            document.getElementById('editingExpDate').value = '';
             renderAll();
         }
 
         function payPartialDebt(id) {
-            let data = readLocalData();
-            const opIndex = data.findIndex(o => o.id === id);
+            const op = readLocalData().find(o => o.id === id);
+            if (!op) return;
 
-            if (opIndex !== -1) {
-                const op = data[opIndex];
-                const reste = op.total - op.advance;
-
-                let amountStr = prompt(`Client : ${op.client}\nReste à payer : ${reste.toLocaleString()} Ar\n\nEntrez le montant payé :`, reste);
-
-                if (amountStr !== null && amountStr.trim() !== '') {
-                    let amount = parseFloat(amountStr);
-                    if (isNaN(amount) || amount <= 0) return alert("Montant invalide.");
-                    if (amount > reste) return alert("Le montant est supérieur au reste !");
-
-                    // Choisir le moyen de paiement
-                    let methodChoice = prompt("Moyen de paiement :\n1. Cash\n2. Mvola", "1");
-                    if (methodChoice === null) return; // Annuler l'opération
-
-                    let paymentMethod = 'Cash';
-                    let mvolaName = '';
-                    if (methodChoice.trim() === '2') {
-                        paymentMethod = 'Mvola';
-                        mvolaName = prompt("Nom du compte Mvola :", op.mvolaName || "");
-                        if (mvolaName === null) return;
-                    }
-
-                    data[opIndex].advance += amount;
-                    data[opIndex].paymentMethod = paymentMethod;
-                    data[opIndex].mvolaName = mvolaName;
-                    data[opIndex].debtPaymentDate = getWorkingDate();
-                    writeLocalData(data);
-                    upsertOperation(data[opIndex]);
-                    renderAll();
-                }
-            }
+            // Afficher la carte de règlement
+            document.getElementById('selectedDebtClient').value = op.client;
+            document.getElementById('debtSettlementCard').style.display = 'block';
+            
+            updateDebtInfo();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function updateDebtInfo() {
-            const debtSelect = document.getElementById('debtSelect');
-            if (!debtSelect) return;
-            const id = parseInt(debtSelect.value);
+            const clientName = document.getElementById('selectedDebtClient').value;
             const display = document.getElementById('debtInfoDisplay');
 
-            if (!id) {
+            if (!clientName) {
                 if (display) display.style.display = 'none';
                 return;
             }
 
             const data = readLocalData();
-            const op = data.find(o => o.id === id);
-            if (op) {
-                document.getElementById('diTotal').innerText = op.total.toLocaleString();
-                document.getElementById('diAdvance').innerText = op.advance.toLocaleString();
-                const reste = op.total - op.advance;
-                document.getElementById('diReste').innerText = reste.toLocaleString();
+            // Récupérer toutes les factures avec reste à payer pour ce client
+            const clientDebts = data.filter(op => op.type === 'SALE' && op.client === clientName && Math.round(op.total - op.advance) > 0)
+                .sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id); // Les plus anciennes d'abord
 
-                const itemsHtml = op.items.map(i => `<div>• ${i.qty}${i.type.toUpperCase().includes('DTF') ? 'm' : ''} ${i.type}</div>`).join('');
-                document.getElementById('diItemsList').innerHTML = `<div class="fw-bold mb-1">Articles commandés :</div>${itemsHtml}`;
-
-                document.getElementById('debtPaymentAmount').value = reste;
-
-                // Pré-remplir le mode de paiement et le nom Mvola si existant
-                if (op.paymentMethod === 'Mvola') {
-                    document.getElementById('debtPaymentMethod').value = 'Mvola';
-                    document.getElementById('debtMvolaName').value = op.mvolaName || '';
-                } else {
-                    document.getElementById('debtPaymentMethod').value = 'Cash';
-                    document.getElementById('debtMvolaName').value = '';
+            if (clientDebts.length > 0) {
+                const list = document.getElementById('debtMultiList');
+                if (list) {
+                    list.innerHTML = '';
+                    clientDebts.forEach(op => {
+                        const reste = Math.round(op.total - op.advance);
+                        const itemsHtml = (op.items || []).map(i => `• ${i.qty}${i.type.toUpperCase().includes('DTF') ? 'm' : ''} ${i.type}`).join(', ');
+                        list.innerHTML += `
+                        <div class="form-check border-bottom pb-2 mb-2">
+                            <input class="form-check-input debt-checkbox" type="checkbox" value="${op.id}" id="debt_chk_${op.id}" checked onchange="calcSelectedDebtTotal()">
+                            <label class="form-check-label small w-100" for="debt_chk_${op.id}">
+                                <div class="d-flex justify-content-between">
+                                    <span><b>Facture N°${op.id}</b> (${op.date})</span>
+                                    <span class="text-danger fw-bold">${reste.toLocaleString()} Ar</span>
+                                </div>
+                                <div class="text-muted text-truncate" style="font-size:0.75rem; max-width:320px;" title="${itemsHtml}">${itemsHtml}</div>
+                            </label>
+                        </div>`;
+                    });
                 }
-                toggleDebtMvolaField();
-
+                calcSelectedDebtTotal();
                 if (display) display.style.display = 'block';
+            } else {
+                if (display) display.style.display = 'none';
             }
         }
 
+        function calcSelectedDebtTotal() {
+            const checkboxes = document.querySelectorAll('.debt-checkbox:checked');
+            let totalReste = 0;
+            const data = readLocalData();
+            checkboxes.forEach(chk => {
+                const op = data.find(o => o.id === parseInt(chk.value));
+                if (op) {
+                    totalReste += Math.round(op.total - op.advance);
+                }
+            });
+            const totalResteEl = document.getElementById('diTotalReste');
+            if (totalResteEl) totalResteEl.innerText = totalReste.toLocaleString() + ' Ar';
+            const payAmountEl = document.getElementById('debtPaymentAmount');
+            if (payAmountEl) payAmountEl.value = totalReste;
+        }
+
         function processDebtPayment() {
-            const id = parseInt(document.getElementById('debtSelect').value);
+            const clientName = document.getElementById('selectedDebtClient').value;
             const amount = parseFloat(document.getElementById('debtPaymentAmount').value);
             const method = document.getElementById('debtPaymentMethod').value;
             const mvolaName = method === 'Mvola' ? document.getElementById('debtMvolaName').value : '';
 
-            if (!id || isNaN(amount) || amount <= 0) return alert("Saisie invalide.");
+            if (!clientName || isNaN(amount) || amount <= 0) return alert("Saisie invalide.");
+
+            const checkboxes = document.querySelectorAll('.debt-checkbox:checked');
+            if (checkboxes.length === 0) return alert("Veuillez sélectionner au moins une facture à régler.");
 
             let data = readLocalData();
-            const opIndex = data.findIndex(o => o.id === id);
+            let remainingPay = amount;
+            let paymentsMade = [];
 
-            if (opIndex !== -1) {
-                const op = data[opIndex];
-                const resteAvant = op.total - op.advance;
-                if (amount > (resteAvant + 0.1)) return alert(`Le montant saisi (${amount.toLocaleString()} Ar) est supérieur au reste à payer (${resteAvant.toLocaleString()} Ar).`);
+            // Récupérer les ventes correspondantes et les trier (plus anciennes d'abord)
+            let selectedOps = [];
+            checkboxes.forEach(chk => {
+                const op = data.find(o => o.id === parseInt(chk.value));
+                if (op) selectedOps.push(op);
+            });
+            selectedOps.sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id);
 
-                data[opIndex].advance += amount;
-                // Sauvegarder le nouveau mode de paiement et le nom Mvola
-                data[opIndex].paymentMethod = method;
-                data[opIndex].mvolaName = mvolaName;
-
-                const paymentDate = document.getElementById('debtPaymentDate').value || getWorkingDate();
-                data[opIndex].debtPaymentDate = paymentDate;
-
-                const resteApres = op.total - data[opIndex].advance;
-                writeLocalData(data);
-                upsertOperation(data[opIndex]);
-
-                printDebtReceipt(op, amount, resteAvant, resteApres, method, mvolaName, paymentDate);
-
-                // Réinitialiser les champs
-                document.getElementById('debtPaymentAmount').value = '';
-                document.getElementById('debtSelect').value = '';
-                document.getElementById('debtMvolaName').value = '';
-                document.getElementById('debtPaymentMethod').value = 'Cash';
-                toggleDebtMvolaField();
-
-                const today = new Date().toLocaleDateString('en-CA');
-                const debtPaymentDateInput = document.getElementById('debtPaymentDate');
-                if (debtPaymentDateInput) debtPaymentDateInput.value = today;
-
-                updateDebtInfo();
-                renderAll();
+            // Somme du reste à payer total des factures cochées
+            let totalSelectedReste = selectedOps.reduce((sum, op) => sum + Math.round(op.total - op.advance), 0);
+            if (amount > (totalSelectedReste + 0.1)) {
+                return alert(`Le montant saisi (${amount.toLocaleString()} Ar) est supérieur au reste total des factures sélectionnées (${totalSelectedReste.toLocaleString()} Ar).`);
             }
+
+            const paymentDate = document.getElementById('debtPaymentDate').value || getWorkingDate();
+
+            for (let op of selectedOps) {
+                if (remainingPay <= 0) break;
+                const idx = data.findIndex(o => o.id === op.id);
+                if (idx === -1) continue;
+
+                const resteBefore = Math.round(op.total - op.advance);
+                const payForThis = Math.min(remainingPay, resteBefore);
+                
+                data[idx].advance += payForThis;
+                data[idx].paymentMethod = method;
+                data[idx].mvolaName = mvolaName;
+                data[idx].debtPaymentDate = paymentDate;
+
+                paymentsMade.push({
+                    id: op.id,
+                    date: op.date,
+                    amountPaid: payForThis,
+                    resteApres: Math.round(op.total - data[idx].advance)
+                });
+
+                remainingPay -= payForThis;
+                upsertOperation(data[idx]).catch(err => console.error('Erreur sync:', err));
+            }
+
+            saveAndSortData(data);
+
+            // Calculer le reste total restant pour ce client
+            const remainingClientDebts = data.filter(op => op.type === 'SALE' && op.client === clientName && Math.round(op.total - op.advance) > 0);
+            const totalClientRemaining = remainingClientDebts.reduce((sum, op) => sum + Math.round(op.total - op.advance), 0);
+
+            printDebtReceipt(clientName, paymentsMade, amount, totalClientRemaining, method, mvolaName, paymentDate);
+
+            // Réinitialiser les champs
+            document.getElementById('debtPaymentAmount').value = '';
+            document.getElementById('selectedDebtClient').value = '';
+            document.getElementById('debtMvolaName').value = '';
+            document.getElementById('debtPaymentMethod').value = 'Cash';
+            toggleDebtMvolaField();
+            document.getElementById('debtSettlementCard').style.display = 'none';
+
+            const today = new Date().toLocaleDateString('en-CA');
+            const debtPaymentDateInput = document.getElementById('debtPaymentDate');
+            if (debtPaymentDateInput) debtPaymentDateInput.value = today;
+
+            updateDebtInfo();
+            renderAll();
         }
 
-        function printDebtReceipt(op, paymentAmount, resteAvant, resteApres, method, mvolaName, dateStr) {
+        function cancelDebtPayment() {
+            document.getElementById('debtPaymentAmount').value = '';
+            document.getElementById('selectedDebtClient').value = '';
+            document.getElementById('debtMvolaName').value = '';
+            document.getElementById('debtPaymentMethod').value = 'Cash';
+            toggleDebtMvolaField();
+            document.getElementById('debtSettlementCard').style.display = 'none';
+        }
+
+        function printDebtReceipt(clientName, payments, totalPaid, totalRemaining, method, mvolaName, dateStr) {
             let pInfo = method;
             if (method === 'Mvola' && mvolaName) pInfo += ` (${mvolaName})`;
+
+            let detailsHtml = payments.map(p => {
+                return `
+                <div class="mb-2 pb-1 border-bottom border-light">
+                    <p class="mb-0 small"><b>Facture N°${p.id} (${p.date})</b></p>
+                    <p class="mb-0 small">Payé : ${p.amountPaid.toLocaleString()} Ar (Nouveau Reste: ${p.resteApres.toLocaleString()} Ar)</p>
+                </div>`;
+            }).join('');
 
             const stubHtml = `
         <div style="max-width: 450px; margin: 20px auto; color: black; font-family: monospace;">
@@ -1280,14 +1499,15 @@
             <p class="mb-0 text-center small">Tél: 034 39 978 25</p>
             <p class="mb-2 text-muted text-center small">Reçu de Paiement de Dette</p>
             <div class="mb-3 border-2 border-bottom border-dark"></div>
-            <p class="mb-1"><b>Date :</b> ${dateStr}</p>
-            <p class="mb-1"><b>Client :</b> ${op.client}</p>
-            <p class="mb-3"><b>Réf Cmd :</b> N°${op.id}</p>
+            <p class="mb-1"><b>Date Paiement :</b> ${dateStr}</p>
+            <p class="mb-1"><b>Client :</b> ${clientName}</p>
+            <div class="mb-3 border-bottom border-dark"></div>
+            ${detailsHtml}
             <h5 class="py-2 border-bottom border-dark border-top text-center fw-bold">
-                MONTANT PAYÉ : ${paymentAmount.toLocaleString()} Ar
+                MONTANT PAYÉ TOTAL : ${totalPaid.toLocaleString()} Ar
             </h5>
             <p class="mt-1 text-center small"><b>Moyen :</b> ${pInfo}</p>
-            <div class="mt-3 text-end"><h6 class="fw-bold">NOUVEAU RESTE : ${resteApres.toLocaleString()} Ar</h6></div>
+            <div class="mt-3 text-end"><h6 class="fw-bold">RESTE TOTAL CLIENT : ${totalRemaining.toLocaleString()} Ar</h6></div>
             <div class="mt-4 pt-2 text-center" style="border-top: 1px dashed #000;">
                 <p class="small mb-0">Signature :</p>
                 <p class="fw-bold">Emo print</p>
@@ -1303,34 +1523,34 @@
             if (opIndex === -1) return;
 
             const op = data[opIndex];
-            editingOriginalDate = op.date;
 
             if (op.type === 'SALE') {
                 new bootstrap.Tab(document.getElementById('tab-vente')).show();
+                document.getElementById('editingSaleId').value = op.id;
+                document.getElementById('editingSaleDate').value = op.date;
                 document.getElementById('orderClient').value = op.client;
                 document.getElementById('orderAdvance').value = op.advance;
                 document.getElementById('paymentMethod').value = op.paymentMethod || 'Cash';
                 document.getElementById('mvolaName').value = op.mvolaName || '';
                 toggleMvolaField();
-                currentBasket = [...op.items];
+                currentBasket = op.items ? [...op.items] : [];
                 renderBasket();
             } else if (op.type === 'EXPENSE') {
                 new bootstrap.Tab(document.getElementById('tab-depense')).show();
+                document.getElementById('editingExpId').value = op.id;
+                document.getElementById('editingExpDate').value = op.date;
                 document.getElementById('expDesc').value = op.desc;
                 document.getElementById('expAmount').value = op.total;
             }
-
-            data.splice(opIndex, 1);
-            writeLocalData(data);
-            deleteOperationRemote(id);
-            renderAll();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function printInvoice(id) {
             const order = readLocalData().find(o => o.id === id);
             if (!order || order.type !== 'SALE') return;
 
-            let itemsHtml = order.items.map(i => {
+            let itemsHtml = (order.items || []).map(i => {
                 const uPrice = i.price || (i.total / i.qty);
                 return `<tr><td>${i.type}</td><td class="text-center">${i.qty}</td><td class="text-end">${uPrice.toLocaleString()}</td><td class="text-end">${i.total.toLocaleString()}</td></tr>`;
             }).join('');
@@ -1338,6 +1558,8 @@
             let pInfo = order.paymentMethod || 'Cash';
             if (pInfo === 'Mvola' && order.mvolaName) pInfo += ` (${order.mvolaName})`;
 
+            const paymentDate = order.debtPaymentDate || order.date;
+            
             const stubHtml = `
         <div style="max-width: 450px; margin: 20px auto; color: black; font-family: monospace;">
             <h3 class="mb-0 text-center fw-bold">DTF PRO EMOPRINT</h3>
@@ -1345,7 +1567,8 @@
             <p class="mb-0 text-center small">Tél: 034 39 978 25</p>
             <p class="mb-2 text-muted text-center small">Reçu / Souche de vente</p>
             <div class="mb-3 border-2 border-bottom border-dark"></div>
-            <p class="mb-1"><b>Date :</b> ${order.date}</p>
+            <p class="mb-1"><b>Date Facture :</b> ${order.date}</p>
+            <p class="mb-1"><b>Date Paiement :</b> ${paymentDate}</p>
             <p class="mb-1"><b>Client :</b> ${order.client}</p>
             <table class="table table-borderless table-sm border-bottom border-dark">
                 <thead><tr><th>Désignation</th><th class="text-center">Qté</th><th class="text-end">PU</th><th class="text-end">Total</th></tr></thead>
@@ -1370,19 +1593,48 @@
             if (!confirm(`Clôturer la caisse du ${currentDate} et passer au jour suivant ?`)) return;
 
             const data = readLocalData();
-            const dayData = data.filter(op => op.date === currentDate);
+            
+            let salesDTF = 0;
+            let advancesDTF = 0;
+            let expenses = 0;
 
-            let sales = 0, expenses = 0, advances = 0;
-            dayData.forEach(op => {
-                if (op.type === 'SALE') { sales += op.total; advances += op.advance; }
-                else { expenses += op.total; }
+            data.forEach(op => {
+                // Dépenses du jour
+                if (op.type === 'EXPENSE' && op.date === currentDate) {
+                    expenses += op.total;
+                }
+                // Ventes du jour (pour le CA créé)
+                if (op.type === 'SALE') {
+                    let dtfTotal = op.items ? op.items.filter(i => i.type.toUpperCase().includes('DTF')).reduce((sum, i) => sum + i.total, 0) : 0;
+                    
+                    if (op.date === currentDate) {
+                        salesDTF += dtfTotal;
+                    }
+
+                    // Calcul de l'avancement/règlement reçu ce jour
+                    let dtfRatio = op.total > 0 ? (dtfTotal / op.total) : 1;
+                    if (op.payments && op.payments.length > 0) {
+                        op.payments.forEach(p => {
+                            if (p.date === currentDate) {
+                                advancesDTF += p.amount * dtfRatio;
+                            }
+                        });
+                    } else {
+                        // Rétrocompatibilité
+                        if (op.date === currentDate) {
+                            let dtfAdvance = Math.min(op.advance, dtfTotal);
+                            advancesDTF += dtfAdvance;
+                        }
+                    }
+                }
             });
 
-            alert(`--- RÉSUMÉ DU ${currentDate} ---\nVentes : ${sales.toLocaleString()} Ar\nEncaissé : ${advances.toLocaleString()} Ar\nDépenses : ${expenses.toLocaleString()} Ar\n\n✅ NET : ${(advances - expenses).toLocaleString()} Ar`);
+            alert(`--- RÉSUMÉ DU ${currentDate} ---\nVentes DTF : ${Math.round(salesDTF).toLocaleString()} Ar\nEncaissé DTF : ${Math.round(advancesDTF).toLocaleString()} Ar\nDépenses : ${expenses.toLocaleString()} Ar\n\n✅ NET CAISSE : ${Math.round(advancesDTF - expenses).toLocaleString()} Ar`);
 
-            let nextDay = new Date(currentDate);
+            let [y, m, d] = currentDate.split('-');
+            let nextDay = new Date(y, m - 1, d);
             nextDay.setDate(nextDay.getDate() + 1);
-            let nextDayStr = nextDay.toLocaleDateString('en-CA');
+            let nextDayStr = `${nextDay.getFullYear()}-${String(nextDay.getMonth()+1).padStart(2,'0')}-${String(nextDay.getDate()).padStart(2,'0')}`;
 
             document.getElementById('workingDateInput').value = nextDayStr;
             document.getElementById('journalFilterDate').value = nextDayStr;
@@ -1402,21 +1654,44 @@
             const debtSelect = document.getElementById('debtSelect');
             const manualSaleSelect = document.getElementById('manualSaleSelect');
             if (debtList) debtList.innerHTML = '';
-            if (debtSelect) debtSelect.innerHTML = '<option value="">-- Choisir une dette en cours --</option>';
+            if (debtSelect) debtSelect.innerHTML = '<option value="">-- Choisir un client débiteur --</option>';
             if (manualSaleSelect) manualSaleSelect.innerHTML = '<option value="">-- Sélectionner une vente pour copier --</option>';
             let hasDebts = false;
-            filteredData.forEach(op => {
-                if (op.type === 'SALE') {
-                    totalSales += op.total;
-                    globalAdvance += op.advance;
-                } else if (op.type === 'EXPENSE') {
-                    totalExp += op.total;
+            
+            data.forEach(op => {
+                if (op.type === 'EXPENSE') {
+                    if (!filterDate || op.date === filterDate) {
+                        totalExp += op.total;
+                    }
+                } else if (op.type === 'SALE') {
+                    let dtfTotal = op.items ? op.items.filter(i => i.type.toUpperCase().includes('DTF')).reduce((sum, i) => sum + i.total, 0) : 0;
+                    
+                    if (!filterDate || op.date === filterDate) {
+                        totalSales += dtfTotal;
+                    }
+
+                    // Calcul de l'encaissé réel reçu à cette date
+                    let dtfRatio = op.total > 0 ? (dtfTotal / op.total) : 1;
+                    if (op.payments && op.payments.length > 0) {
+                        op.payments.forEach(p => {
+                            if (!filterDate || p.date === filterDate) {
+                                globalAdvance += p.amount * dtfRatio;
+                            }
+                        });
+                    } else {
+                        // Rétrocompatibilité
+                        if (!filterDate || op.date === filterDate) {
+                            let dtfAdvance = Math.min(op.advance, dtfTotal);
+                            globalAdvance += dtfAdvance;
+                        }
+                    }
                 }
             });
 
             // --- LISTE DES DETTES (Toujours Global pour permettre le remboursement) ---
             const debtSearch = document.getElementById('debtSearchInput') ? document.getElementById('debtSearchInput').value.toLowerCase() : '';
 
+            let debtOps = [];
             data.forEach(op => {
                 if (op.type === 'SALE') {
                     if (manualSaleSelect) {
@@ -1427,25 +1702,45 @@
                         // Filtre par recherche client si saisie
                         if (debtSearch && !op.client.toLowerCase().includes(debtSearch)) return;
 
-                        hasDebts = true;
-                        const itemsBadges = op.items ? op.items.map(i => {
-                            let unit = i.type.toUpperCase().includes('DTF') ? 'm' : '';
-                            let badgeClass = 'bg-secondary text-white';
-                            const t = i.type.toUpperCase();
-                            if (t.includes('DTF')) badgeClass = 'bg-primary text-white';
-                            else if (t.includes('CONCEPTION')) badgeClass = 'bg-info text-dark';
-                            else if (t.includes('TEXTILE')) badgeClass = 'bg-warning text-dark';
-                            return `<span class="badge ${badgeClass} me-1" style="font-size: 0.65rem;">${i.qty}${unit}</span>`;
-                        }).join('') : '';
-
-                        if (debtList) debtList.innerHTML += `<tr><td><b>${op.client}</b><br><small class="text-muted">${op.date}</small><div class="mt-1">${itemsBadges}</div></td><td class="text-danger text-end fw-bold">${reste.toLocaleString()} Ar</td><td class="text-center"><button class="btn btn-sm btn-primary" onclick="payPartialDebt(${op.id})">Payer</button></td></tr>`;
-                        if (debtSelect) debtSelect.innerHTML += `<option value="${op.id}">${op.client} - Reste: ${reste.toLocaleString()} Ar (${op.date})</option>`;
+                        debtOps.push(op);
                     }
                 }
             });
 
-            if (!hasDebts && debtList) {
-                debtList.innerHTML = debtSearch ? '<tr><td colspan="3" class="text-center text-muted small">Aucun client trouvé pour "' + debtSearch + '"</td></tr>' : '<tr><td colspan="3" class="text-center text-success small">Aucune dette</td></tr>';
+            if (debtOps.length > 0) {
+                hasDebts = true;
+                // Trier les dettes par date (les plus récentes d'abord)
+                debtOps.sort((a, b) => {
+                    if (b.date !== a.date) return b.date.localeCompare(a.date);
+                    return b.id - a.id;
+                });
+
+                let currentDateGroup = null;
+                debtOps.forEach(op => {
+                    const reste = Math.round(op.total - op.advance);
+
+                    // Ajouter un en-tête de groupe par jour si on change de date
+                    if (currentDateGroup !== op.date) {
+                        currentDateGroup = op.date;
+                        if (debtList) {
+                            debtList.innerHTML += `<tr class="table-light"><td colspan="3" class="fw-bold text-center text-secondary small py-1 bg-light border-bottom border-top"><i class="bi bi-calendar-event me-1"></i> ${op.date}</td></tr>`;
+                        }
+                    }
+
+                    const itemsBadges = op.items ? op.items.map(i => {
+                        let unit = i.type.toUpperCase().includes('DTF') ? 'm' : '';
+                        let badgeClass = 'bg-secondary text-white';
+                        const t = i.type.toUpperCase();
+                        if (t.includes('DTF')) badgeClass = 'bg-primary text-white';
+                        else if (t.includes('CONCEPTION')) badgeClass = 'bg-info text-dark';
+                        else if (t.includes('TEXTILE')) badgeClass = 'bg-warning text-dark';
+                        return `<span class="badge ${badgeClass} me-1" style="font-size: 0.65rem;">${i.qty}${unit}</span>`;
+                    }).join('') : '';
+
+                    if (debtList) debtList.innerHTML += `<tr><td><b>${op.client}</b><div class="mt-1">${itemsBadges}</div></td><td class="text-danger text-end fw-bold align-middle">${reste.toLocaleString()} Ar</td><td class="text-center align-middle"><button class="btn btn-sm btn-outline-primary py-0" onclick="payPartialDebt(${op.id})">Payer</button></td></tr>`;
+                });
+            } else {
+                if (debtList) debtList.innerHTML = debtSearch ? '<tr><td colspan="3" class="text-center text-muted small py-3">Aucun client trouvé pour "' + debtSearch + '"</td></tr>' : '<tr><td colspan="3" class="text-center text-success small py-3"><i class="bi bi-check-circle me-1"></i> Aucune dette</td></tr>';
             }
 
             updateDebtInfo();
@@ -1487,8 +1782,18 @@
                 let expensesDetails = {};
                 data.forEach(op => {
                     if (op.type === 'SALE') {
-                        gSales += op.total;
-                        gAdv += op.advance;
+                        let dtfTotal = op.items ? op.items.filter(i => i.type.toUpperCase().includes('DTF')).reduce((sum, i) => sum + i.total, 0) : 0;
+                        gSales += dtfTotal;
+                        
+                        let dtfRatio = op.total > 0 ? (dtfTotal / op.total) : 1;
+                        if (op.payments && op.payments.length > 0) {
+                            op.payments.forEach(p => {
+                                gAdv += p.amount * dtfRatio;
+                            });
+                        } else {
+                            let dtfAdvance = Math.min(op.advance, dtfTotal);
+                            gAdv += dtfAdvance;
+                        }
                     } else if (op.type === 'EXPENSE') {
                         gExp += op.total;
                         const desc = op.desc ? op.desc.trim().toUpperCase() : 'AUTRE';
@@ -1505,10 +1810,10 @@
                     expensesHtml += `</ul></div>`;
                 }
                 globalSummaryContent.innerHTML = `
-                <div class="d-flex justify-content-between mb-2"><span>Ventes Totales:</span> <b>${gSales.toLocaleString()} Ar</b></div>
-                <div class="d-flex justify-content-between mb-2"><span>Avances Reçues:</span> <b>${gAdv.toLocaleString()} Ar</b></div>
+                <div class="d-flex justify-content-between mb-2"><span>Ventes Totales:</span> <b>${Math.round(gSales).toLocaleString()} Ar</b></div>
+                <div class="d-flex justify-content-between mb-2"><span>Avances Reçues:</span> <b>${Math.round(gAdv).toLocaleString()} Ar</b></div>
                 <div class="d-flex justify-content-between mb-2"><span>Dépenses Totales:</span> <b>${gExp.toLocaleString()} Ar</b></div>
-                <hr><div class="d-flex justify-content-between text-success fs-5 fw-bold"><span>BÉNÉFICE NET GLOBAL:</span> <span>${(gAdv - gExp).toLocaleString()} Ar</span></div>
+                <hr><div class="d-flex justify-content-between text-success fs-5 fw-bold"><span>BÉNÉFICE NET GLOBAL:</span> <span>${Math.round(gAdv - gExp).toLocaleString()} Ar</span></div>
                 ${expensesHtml}`;
             }
 
@@ -1516,31 +1821,67 @@
             if (dailySummaryList) {
                 dailySummaryList.innerHTML = '';
                 const summary = {};
-                const sortedDates = [...new Set(data.map(o => o.date))].sort();
+                
+                // Collecter toutes les dates de vente, dépenses ou de paiement
+                let allDates = new Set();
+                data.forEach(o => {
+                    allDates.add(o.date);
+                    if (o.type === 'SALE' && o.payments) {
+                        o.payments.forEach(p => allDates.add(p.date));
+                    }
+                });
+                const sortedDates = [...allDates].sort();
+
                 sortedDates.forEach(date => {
                     summary[date] = { sales: 0, advances: 0, expenses: 0, film: 0, salesDTF: 0, salesOther: 0 };
-                    data.filter(o => o.date === date).forEach(op => {
+                    data.forEach(op => {
                         if (op.type === 'SALE') {
-                            summary[date].sales += op.total;
-                            summary[date].advances += op.advance;
+                            let dtfTotal = 0;
+                            let nonDtfTotal = 0;
+                            let filmQty = 0;
                             if (op.items) {
                                 op.items.forEach(item => {
                                     if (item.type.toUpperCase().includes('DTF')) {
-                                        summary[date].film += parseFloat(item.qty) || 0;
-                                        summary[date].salesDTF += item.total;
+                                        filmQty += parseFloat(item.qty) || 0;
+                                        dtfTotal += item.total;
                                     } else {
-                                        summary[date].salesOther += item.total;
+                                        nonDtfTotal += item.total;
                                     }
                                 });
                             }
+                            
+                            // Si la commande a été passée ce jour-là
+                            if (op.date === date) {
+                                summary[date].film += filmQty;
+                                summary[date].salesDTF += dtfTotal;
+                                summary[date].salesOther += nonDtfTotal;
+                                summary[date].sales += dtfTotal;
+                            }
+
+                            // Les avances / règlements affectés à ce jour-là
+                            let dtfRatio = op.total > 0 ? (dtfTotal / op.total) : 1;
+                            if (op.payments && op.payments.length > 0) {
+                                op.payments.forEach(p => {
+                                    if (p.date === date) {
+                                        summary[date].advances += p.amount * dtfRatio;
+                                    }
+                                });
+                            } else {
+                                if (op.date === date) {
+                                    let dtfAdvance = Math.min(op.advance, dtfTotal);
+                                    summary[date].advances += dtfAdvance;
+                                }
+                            }
                         }
-                        else if (op.type === 'EXPENSE') { summary[date].expenses += op.total; }
+                        else if (op.type === 'EXPENSE' && op.date === date) {
+                            summary[date].expenses += op.total;
+                        }
                     });
                 });
                 Object.keys(summary).sort().reverse().forEach(date => {
                     const s = summary[date];
                     const net = s.advances - s.expenses;
-                    dailySummaryList.innerHTML += `<tr><td>${date}</td><td class="fw-bold text-primary">${s.film.toFixed(2)} m</td><td>${s.salesDTF.toLocaleString()} Ar</td><td>${s.salesOther.toLocaleString()} Ar</td><td>${s.advances.toLocaleString()} Ar</td><td>${s.expenses.toLocaleString()} Ar</td><td class="fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${net.toLocaleString()} Ar</td></tr>`;
+                    dailySummaryList.innerHTML += `<tr><td>${date}</td><td class="fw-bold text-primary">${s.film.toFixed(2)} m</td><td>${Math.round(s.salesDTF).toLocaleString()} Ar</td><td>${Math.round(s.salesOther).toLocaleString()} Ar</td><td>${Math.round(s.advances).toLocaleString()} Ar</td><td>${s.expenses.toLocaleString()} Ar</td><td class="fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${Math.round(net).toLocaleString()} Ar</td><td class="text-center no-print"><button class="btn btn-sm btn-light border text-danger py-0 px-2" onclick="deleteDailyCaisse('${date}')" title="Supprimer la caisse de ce jour">×</button></td></tr>`;
                 });
             }
 
@@ -1548,20 +1889,36 @@
             if (monthlySummaryList) {
                 monthlySummaryList.innerHTML = '';
                 const monthlyData = {};
+                
                 data.forEach(op => {
-                    const month = op.date.substring(0, 7); // "YYYY-MM"
-                    if (!monthlyData[month]) monthlyData[month] = { sales: 0, advances: 0, expenses: 0 };
                     if (op.type === 'SALE') {
-                        monthlyData[month].sales += op.total;
-                        monthlyData[month].advances += op.advance;
+                        const month = op.date.substring(0, 7); // "YYYY-MM"
+                        if (!monthlyData[month]) monthlyData[month] = { sales: 0, advances: 0, expenses: 0 };
+                        
+                        let dtfTotal = op.items ? op.items.filter(i => i.type.toUpperCase().includes('DTF')).reduce((sum, i) => sum + i.total, 0) : 0;
+                        monthlyData[month].sales += dtfTotal;
+                        
+                        let dtfRatio = op.total > 0 ? (dtfTotal / op.total) : 1;
+                        if (op.payments && op.payments.length > 0) {
+                            op.payments.forEach(p => {
+                                const payMonth = p.date.substring(0, 7);
+                                if (!monthlyData[payMonth]) monthlyData[payMonth] = { sales: 0, advances: 0, expenses: 0 };
+                                monthlyData[payMonth].advances += p.amount * dtfRatio;
+                            });
+                        } else {
+                            let dtfAdvance = Math.min(op.advance, dtfTotal);
+                            monthlyData[month].advances += dtfAdvance;
+                        }
                     } else if (op.type === 'EXPENSE') {
+                        const month = op.date.substring(0, 7);
+                        if (!monthlyData[month]) monthlyData[month] = { sales: 0, advances: 0, expenses: 0 };
                         monthlyData[month].expenses += op.total;
                     }
                 });
                 Object.keys(monthlyData).sort().reverse().forEach(month => {
                     const s = monthlyData[month];
                     const net = s.advances - s.expenses;
-                    monthlySummaryList.innerHTML += `<tr><td><b class="text-uppercase">${month}</b></td><td class="text-end fw-bold">${s.sales.toLocaleString()} Ar</td><td class="text-end fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${net.toLocaleString()} Ar</td></tr>`;
+                    monthlySummaryList.innerHTML += `<tr><td><b class="text-uppercase">${month}</b></td><td class="text-end fw-bold">${Math.round(s.sales).toLocaleString()} Ar</td><td class="text-end fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${Math.round(net).toLocaleString()} Ar</td></tr>`;
                 });
             }
 
@@ -1618,8 +1975,36 @@
             renderAll();
         }
 
+        async function deleteDailyCaisse(date) {
+            if (!confirm(`Confirmer la suppression de la caisse pour le ${date} ?\nCela supprimera toutes les dépenses de ce jour, mais conservera les ventes.`)) return;
+
+            let data = readLocalData();
+            const expensesToDelete = data.filter(op => op.date === date && op.type === 'EXPENSE');
+
+            if (expensesToDelete.length === 0) {
+                alert("Aucune dépense à supprimer pour cette date.");
+                return;
+            }
+
+            // Conserver uniquement les ventes et les opérations des autres dates
+            data = data.filter(op => !(op.date === date && op.type === 'EXPENSE'));
+            writeLocalData(data);
+
+            // Supprimer sur Supabase si connecté
+            for (const op of expensesToDelete) {
+                try {
+                    await deleteOperationRemote(op.id);
+                } catch (err) {
+                    console.error('Erreur de suppression distante :', err);
+                }
+            }
+
+            renderAll();
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
-            const today = new Date().toLocaleDateString('en-CA');
+            const d = new Date();
+            const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
             const dateInput = document.getElementById('workingDateInput');
             if (dateInput) dateInput.value = today;
             const filterInput = document.getElementById('journalFilterDate');
@@ -1628,12 +2013,30 @@
             if (manualDateInput) manualDateInput.value = today;
             const debtPaymentDateInput = document.getElementById('debtPaymentDate');
             if (debtPaymentDateInput) debtPaymentDateInput.value = today;
+            
+            // Demander la permission pour les notifications bureau
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+
             supabaseClient = setupSupabaseClient();
             await loadFromSupabaseOrLocal();
             renderAll();
             subscribeRealtime();
         });
     </script>
+    
+    <!-- Toast Container (Notification visuelle) -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3 no-print" style="z-index: 1080;">
+        <div id="liveToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage">
+                    Modification de la caisse détectée.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
