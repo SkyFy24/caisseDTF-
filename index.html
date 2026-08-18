@@ -9,6 +9,9 @@
     <title>DTF PRO SYSTEM - Gestion Intégrale</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Chart.js & QRCode.js pour graphiques et tickets -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --dtf-primary: #0d6efd;
@@ -105,27 +108,27 @@
                 <div class="mb-2 row">
                     <div class="col-md-4">
                         <div class="p-3 border-4 border-start border-success card">
-                            <small class="text-muted text-uppercase fw-bold">Ventes du jour</small>
+                            <small class="text-muted text-uppercase fw-bold" id="statSalesLabel">Ventes (Mois en cours)</small>
                             <h3 class="mb-0 text-success" id="statTotalSales">0 Ar</h3>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 border-4 border-danger border-start card">
-                            <small class="text-muted text-uppercase fw-bold">Dépenses du jour</small>
+                            <small class="text-muted text-uppercase fw-bold" id="statExpLabel">Dépenses (Mois en cours)</small>
                             <h3 class="mb-0 text-danger" id="statTotalExp">0 Ar</h3>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 border-4 border-info border-start card">
-                            <small class="text-muted text-uppercase fw-bold">Net Encaissé (jour)</small>
+                            <small class="text-muted text-uppercase fw-bold" id="statNetLabel">Net Encaissé (Mois en cours)</small>
                             <h3 class="mb-0 text-info" id="statNet">0 Ar</h3>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- BLOC DE GESTION DES DATES -->
-            <div class="card shadow-sm mb-4 border-0 rounded-4">
+            <!-- BLOC DE GESTION DES DATES & EXPORT -->
+            <div class="card shadow-sm mb-3 border-0 rounded-4">
                 <div
                     class="card-body bg-light rounded-4 d-flex flex-wrap justify-content-between align-items-center gap-3 p-3 border">
 
@@ -137,31 +140,57 @@
                         <div class="input-group input-group-sm shadow-sm" style="width: auto;">
                             <input type="date" id="workingDateInput"
                                 class="form-control border-primary text-primary fw-bold" style="cursor: pointer;"
-                                onchange="document.getElementById('journalFilterDate').value = this.value; renderAll()">
+                                onchange="syncWorkingDateToFilter(this.value)">
                             <button class="btn btn-danger text-white fw-bold px-3" onclick="closeJournal()">
                                 <i class="bi bi-lock-fill me-1"></i> Clôturer
                             </button>
                         </div>
                     </div>
 
-                    <!-- Section : Filtre du journal/historique -->
+                    <!-- Section : Filtre par Mois et par Période -->
                     <div class="d-flex align-items-center flex-wrap gap-2">
-                        <span class="badge bg-secondary text-white p-2 fs-6 rounded-3 shadow-sm">
-                            <i class="bi bi-search me-1"></i> Consulter le
-                        </span>
+                        <!-- Sélection rapide du Mois -->
                         <div class="input-group input-group-sm shadow-sm" style="width: auto;">
-                            <input type="date" id="journalFilterDate"
+                            <span class="input-group-text bg-info text-white fw-bold"><i class="bi bi-calendar-month me-1"></i> Mois</span>
+                            <input type="month" id="journalMonthInput" class="form-control border-info text-info fw-bold" style="cursor: pointer;" onchange="filterBySelectedMonth(this.value)">
+                            <button class="btn btn-primary fw-bold px-2" onclick="filterCurrentMonth()" title="Voir le mois en cours">
+                                <i class="bi bi-calendar2-check me-1"></i> Mois en cours
+                            </button>
+                        </div>
+
+                        <!-- Filtre par Dates exactes -->
+                        <div class="input-group input-group-sm shadow-sm" style="width: auto;">
+                            <span class="input-group-text bg-secondary text-white fw-bold"><i class="bi bi-funnel me-1"></i> Du</span>
+                            <input type="date" id="journalStartDate"
                                 class="form-control border-secondary text-secondary fw-bold" style="cursor: pointer;"
-                                onchange="document.getElementById('workingDateInput').value = this.value; renderAll()">
-                            <button class="btn btn-outline-secondary fw-bold px-3"
-                                onclick="document.getElementById('journalFilterDate').value=''; renderAll()"
-                                title="Voir toutes les dates">
+                                onchange="onCustomDateChange()">
+                            <span class="input-group-text bg-secondary text-white fw-bold">au</span>
+                            <input type="date" id="journalEndDate"
+                                class="form-control border-secondary text-secondary fw-bold" style="cursor: pointer;"
+                                onchange="onCustomDateChange()">
+                            <button class="btn btn-outline-secondary fw-bold px-2"
+                                onclick="resetDateFilter()"
+                                title="Voir toutes les dates sans filtre">
                                 <i class="bi bi-arrow-clockwise"></i> Tout voir
+                            </button>
+                            <button class="btn btn-success fw-bold px-3" onclick="exportToCSV()" title="Exporter le journal au format CSV/Excel">
+                                <i class="bi bi-file-earmark-excel me-1"></i> Exporter CSV
                             </button>
                         </div>
                     </div>
 
                 </div>
+            </div>
+
+            <!-- Bandeau de notification de consultation de mois -->
+            <div id="monthViewBanner" class="alert alert-info py-2 px-3 mb-3 d-flex justify-content-between align-items-center rounded-3 shadow-sm" style="display: none;">
+                <div>
+                    <i class="bi bi-info-circle-fill me-2 fs-5 align-middle"></i>
+                    <span id="monthViewBannerText">Consultation de la caisse du mois</span>
+                </div>
+                <button class="btn btn-sm btn-outline-primary fw-bold" onclick="filterCurrentMonth()">
+                    <i class="bi bi-arrow-return-left me-1"></i> Revenir au mois en cours
+                </button>
             </div>
 
             <div class="row">
@@ -225,15 +254,24 @@
                                 </table>
 
                                 <div class="bg-cash mb-3 p-2 rounded">
-                                    <div class="d-flex justify-content-between fw-bold"><span>TOTAL:</span> <span
+                                    <div class="d-flex justify-content-between fw-bold"><span>TOTAL BRUT:</span> <span
                                             id="tempTotal">0 Ar</span></div>
                                     <div class="mt-1 row g-2">
-                                        <div class="col-6"><input type="number" id="orderAdvance"
+                                        <div class="col-6">
+                                            <input type="number" id="orderDiscount"
+                                                class="form-control form-control-sm" placeholder="Remise (Ar)"
+                                                oninput="calcBalance()" step="any">
+                                        </div>
+                                        <div class="col-6">
+                                            <input type="number" id="orderAdvance"
                                                 class="form-control form-control-sm" placeholder="Avance"
-                                                oninput="calcBalance()" step="any"></div>
-                                        <div class="text-danger text-end col-6 fw-bold" id="orderBalance">Reste: 0 Ar
+                                                oninput="calcBalance()" step="any">
                                         </div>
                                     </div>
+                                    <div class="d-flex justify-content-between mt-2 pt-1 border-top fw-bold">
+                                        <span>NET À PAYER:</span> <span id="tempNetTotal" class="text-primary">0 Ar</span>
+                                    </div>
+                                    <div class="text-danger text-end fw-bold mt-1" id="orderBalance">Reste: 0 Ar</div>
                                     <div class="mt-2 pt-2 border-primary border-top border-opacity-25 row g-2">
                                         <div class="col-6">
                                             <label class="mb-1 text-muted small fw-bold">Moyen de paiement</label>
@@ -295,13 +333,20 @@
                         <!-- ONGLET DETTES -->
                         <div class="tab-pane fade" id="debtTab">
                             <div class="p-3 border-danger card">
-                                <h6 class="mb-3 text-danger fw-bold"><i class="bi bi-exclamation-triangle"></i> Clients
-                                    avec Dettes</h6>
-                                <div class="mb-3">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                                        <input type="text" id="debtSearchInput" class="form-control"
-                                            placeholder="Rechercher un client..." oninput="renderAll()">
+                                <h6 class="mb-3 text-danger fw-bold"><i class="bi bi-exclamation-triangle"></i> Clients avec Dettes</h6>
+                                <div class="mb-3 row g-2">
+                                    <div class="col-md-7">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                                            <input type="text" id="debtSearchInput" class="form-control"
+                                                placeholder="Rechercher un client..." oninput="renderAll()">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <select id="debtScopeSelect" class="form-select form-select-sm border-danger text-danger fw-bold" onchange="renderAll()" title="Périmètre d'affichage des dettes">
+                                            <option value="period">📅 Mois sélectionné</option>
+                                            <option value="all">🌐 Tous les mois (Global)</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -381,8 +426,14 @@
                                 <h6 class="mb-3 text-warning fw-bold"><i class="bi bi-receipt-cutoff"></i> Facture Manuelle</h6>
                                 
                                 <div id="manualInvoiceForm">
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold text-info">REPRENDRE UNE VENTE EXISTANTE (OPTIONNEL)</label>
+                                    <div class="mb-3 bg-light p-2 border rounded border-warning">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-label small fw-bold text-info mb-0">REPRENDRE UNE VENTE / DETTE EXISTANTE</label>
+                                            <select id="manualScopeSelect" class="form-select form-select-sm border-info text-info fw-bold py-0" style="width: auto;" onchange="renderAll(); updateManualSalesCheckboxList();">
+                                                <option value="all">🌐 Tous les mois</option>
+                                                <option value="period">📅 Mois sélectionné</option>
+                                            </select>
+                                        </div>
                                         <select id="manualSaleSelect" class="form-select-sm form-select border-info" onchange="loadSaleIntoManualInvoice(this.value)">
                                             <option value="">-- Sélectionner une vente pour copier --</option>
                                         </select>
@@ -434,15 +485,24 @@
                                     </table>
 
                                     <div class="bg-cash mb-3 p-2 rounded">
-                                        <div class="d-flex justify-content-between fw-bold"><span>TOTAL:</span> <span
+                                        <div class="d-flex justify-content-between fw-bold"><span>TOTAL BRUT:</span> <span
                                                 id="manualTempTotal">0 Ar</span></div>
                                         <div class="mt-1 row g-2">
-                                            <div class="col-6"><input type="number" id="manualAdvance"
+                                            <div class="col-6">
+                                                <input type="number" id="manualDiscount"
+                                                    class="form-control form-control-sm" placeholder="Remise (Ar)"
+                                                    oninput="calcManualBalance()" step="any">
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="number" id="manualAdvance"
                                                     class="form-control form-control-sm" placeholder="Avance"
-                                                    oninput="calcManualBalance()" step="any"></div>
-                                            <div class="text-danger text-end col-6 fw-bold" id="manualBalance">Reste: 0 Ar
+                                                    oninput="calcManualBalance()" step="any">
                                             </div>
                                         </div>
+                                        <div class="d-flex justify-content-between mt-2 pt-1 border-top fw-bold">
+                                            <span>NET À PAYER:</span> <span id="manualNetTotal" class="text-primary">0 Ar</span>
+                                        </div>
+                                        <div class="text-danger text-end fw-bold mt-1" id="manualBalance">Reste: 0 Ar</div>
                                         <div class="mt-2 pt-2 border-warning border-top border-opacity-25 row g-2">
                                             <div class="col-6">
                                                 <label class="mb-1 text-muted small fw-bold">Moyen de paiement</label>
@@ -477,18 +537,22 @@
                                 <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center"
                                     style="cursor: pointer;" data-bs-toggle="collapse"
                                     data-bs-target="#monthlySummaryCollapse">
-                                    <span><i class="bi bi-calendar-range me-2 text-info"></i>Chiffre d'Affaire
-                                        Mensuel</span>
+                                    <span><i class="bi bi-calendar-range me-2 text-info"></i>Chiffre d'Affaire & Historique Mensuel</span>
                                     <i class="bi bi-chevron-down"></i>
                                 </div>
                                 <div class="card-body collapse show p-0" id="monthlySummaryCollapse">
+                                    <div class="p-2 bg-light border-bottom small text-muted">
+                                        <i class="bi bi-info-circle me-1 text-primary"></i> Cliquez sur un mois ci-dessous pour charger et consulter sa caisse complète.
+                                    </div>
                                     <div class="table-responsive">
-                                        <table class="table table-sm table-hover mb-0">
+                                        <table class="table table-sm table-hover align-middle mb-0">
                                             <thead class="table-light">
                                                 <tr>
                                                     <th>Mois</th>
-                                                    <th class="text-end">Ventes</th>
-                                                    <th class="text-end">Bénéfice</th>
+                                                    <th class="text-end">Ventes DTF</th>
+                                                    <th class="text-end">Dépenses</th>
+                                                    <th class="text-end">Bénéfice Net</th>
+                                                    <th class="text-center">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="monthlySummaryList"></tbody>
@@ -504,11 +568,30 @@
                                 <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center"
                                     style="cursor: pointer;" data-bs-toggle="collapse"
                                     data-bs-target="#globalSummaryCollapse">
-                                    <span><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Résumé Global</span>
+                                    <span><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Résumé Global & Graphiques</span>
                                     <i class="bi bi-chevron-down"></i>
                                 </div>
                                 <div class="card-body collapse show" id="globalSummaryCollapse">
                                     <div id="globalSummaryContent"></div>
+                                    <!-- Graphiques de Performance -->
+                                    <div class="row mt-4">
+                                        <div class="col-md-7 mb-3">
+                                            <div class="card p-3 border shadow-sm">
+                                                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-bar-chart-line me-1"></i> Évolution Ventes vs Dépenses</h6>
+                                                <div style="position: relative; height: 240px;">
+                                                    <canvas id="chartSalesVsExp"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5 mb-3">
+                                            <div class="card p-3 border shadow-sm">
+                                                <h6 class="fw-bold text-danger mb-3"><i class="bi bi-pie-chart me-1"></i> Répartition des Dépenses</h6>
+                                                <div style="position: relative; height: 240px;">
+                                                    <canvas id="chartExpCategories"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -517,16 +600,34 @@
                 </div>
 
                 <div class="col-xl-8">
-                    <div class="card">
-                        <div class="bg-white card-header d-flex justify-content-between align-items-center fw-bold"
+                    <div class="card shadow-sm border-0">
+                        <div class="bg-white card-header d-flex justify-content-between align-items-center fw-bold py-3"
                             style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#caisseJourCollapse">
-                            <span><i class="me-2 bi bi-calendar3"></i>Caisse par Jour</span>
-                            <i class="bi bi-chevron-down"></i>
+                            <span><i class="me-2 bi bi-calendar3 text-primary"></i>Caisse par Jour (Journal des Totaux Journaliers)</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-light text-dark border fw-normal" id="caisseJourCountBadge">0 jours</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
                         </div>
                         <div class="p-0 card-body collapse show" id="caisseJourCollapse">
-                            <div class="table-responsive">
-                                <table class="table table-hover table-sm mb-0">
-                                    <thead class="table-dark">
+                            <!-- Barre d'outils et de navigation dans les jours passés -->
+                            <div class="bg-light p-2 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2 no-print">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="small fw-bold text-muted"><i class="bi bi-funnel me-1"></i> Afficher :</span>
+                                    <select id="caisseJourScopeSelect" class="form-select form-select-sm border-primary text-primary fw-bold" style="width: auto;" onchange="renderAll()">
+                                        <option value="period">📅 Mois sélectionné</option>
+                                        <option value="last30">🕒 30 derniers jours</option>
+                                        <option value="all">🌐 Tout l'historique des jours</option>
+                                    </select>
+                                </div>
+                                <div class="input-group input-group-sm" style="width: 220px;">
+                                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="caisseJourSearchInput" class="form-control" placeholder="Chercher date (ex: 2026-07)..." oninput="renderAll()">
+                                </div>
+                            </div>
+                            <div class="table-responsive" id="caisseJourTableContainer" style="max-height: 550px; overflow-y: auto;">
+                                <table class="table table-hover table-sm mb-0 align-middle">
+                                    <thead class="table-dark sticky-top" style="z-index: 5;">
                                         <tr>
                                             <th>Date</th>
                                             <th>Film DTF</th>
@@ -539,27 +640,35 @@
                                         </tr>
                                     </thead>
                                     <tbody id="dailySummaryList"></tbody>
+                                    <tfoot id="dailySummaryFoot"></tfoot>
                                 </table>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card mt-3" onmouseenter="let el=document.getElementById('historyCollapse'); let bs=bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, {toggle:false}); bs.show();" onmouseleave="let el=document.getElementById('historyCollapse'); let bs=bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, {toggle:false}); bs.hide();">
-                        <div class="bg-white card-header d-flex justify-content-between align-items-center fw-bold"
-                            style="cursor: default;">
-                            <span>Dernières Opérations</span>
-                            <div class="input-group input-group-sm w-75" onclick="event.stopPropagation()">
-                                <select id="globalMethodSearch" class="form-select border-0 bg-light text-muted" style="max-width: 110px;" onchange="renderAll()">
-                                    <option value="">Tous</option>
-                                    <option value="Mvola">Mvola</option>
-                                    <option value="Cash">Cash</option>
-                                </select>
-                                <span class="input-group-text bg-light border-0 border-start"><i class="bi bi-person-search"></i></span>
-                                <input type="text" id="globalClientSearch" class="form-control border-0 bg-light"
-                                    placeholder="Chercher client..." oninput="renderAll()">
+                    <div class="card mt-3 shadow-sm border-0">
+                        <div class="bg-white card-header d-flex flex-wrap justify-content-between align-items-center fw-bold py-3">
+                            <div role="button" data-bs-toggle="collapse" data-bs-target="#historyCollapse" class="d-flex align-items-center gap-2" style="cursor: pointer;">
+                                <i class="bi bi-list-stars text-primary fs-5"></i>
+                                <span>Dernières Opérations (Journal de la période)</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="input-group input-group-sm" style="width: 260px;" onclick="event.stopPropagation()">
+                                    <select id="globalMethodSearch" class="form-select border-0 bg-light text-muted fw-bold" style="max-width: 100px;" onchange="renderAll()">
+                                        <option value="">Tous</option>
+                                        <option value="Mvola">Mvola</option>
+                                        <option value="Cash">Cash</option>
+                                    </select>
+                                    <span class="input-group-text bg-light border-0 border-start"><i class="bi bi-person-search"></i></span>
+                                    <input type="text" id="globalClientSearch" class="form-control border-0 bg-light"
+                                        placeholder="Chercher client..." oninput="renderAll()">
+                                </div>
+                                <div role="button" data-bs-toggle="collapse" data-bs-target="#historyCollapse" style="cursor: pointer;" title="Afficher / Masquer les opérations">
+                                    <i class="bi bi-chevron-down"></i>
+                                </div>
                             </div>
                         </div>
-                        <div class="p-0 card-body collapse" id="historyCollapse">
+                        <div class="p-0 card-body collapse show" id="historyCollapse">
                             <div class="table-responsive">
                                 <table class="table table-sm mb-0 align-middle">
                                     <tbody id="historyList"></tbody>
@@ -916,10 +1025,16 @@
         }
 
         function calcBalance() {
-            let total = currentBasket.reduce((sum, i) => sum + i.total, 0);
+            let rawTotal = currentBasket.reduce((sum, i) => sum + i.total, 0);
+            let discount = parseFloat(document.getElementById('orderDiscount').value) || 0;
+            let netTotal = Math.max(0, rawTotal - discount);
             let adv = parseFloat(document.getElementById('orderAdvance').value) || 0;
+            
+            let netEl = document.getElementById('tempNetTotal');
+            if (netEl) netEl.innerText = netTotal.toLocaleString() + ' Ar';
+
             let balElement = document.getElementById('orderBalance');
-            if (balElement) balElement.innerText = 'Reste: ' + (total - adv).toLocaleString() + ' Ar';
+            if (balElement) balElement.innerText = 'Reste: ' + (netTotal - adv).toLocaleString() + ' Ar';
         }
 
         function toggleMvolaField() {
@@ -948,6 +1063,10 @@
             const editId = document.getElementById('editingSaleId').value;
             const editDate = document.getElementById('editingSaleDate').value;
             const finalDate = editDate ? editDate : getWorkingDate();
+            
+            const rawTotal = currentBasket.reduce((sum, i) => sum + i.total, 0);
+            const discount = parseFloat(document.getElementById('orderDiscount').value) || 0;
+            const netTotal = Math.max(0, rawTotal - discount);
             const advance = parseFloat(document.getElementById('orderAdvance').value) || 0;
             
             const orderId = editId ? parseInt(editId) : Date.now();
@@ -975,7 +1094,9 @@
                 type: 'SALE',
                 client,
                 items: [...currentBasket],
-                total: currentBasket.reduce((sum, i) => sum + i.total, 0),
+                total: netTotal,
+                rawTotal: rawTotal,
+                discount: discount,
                 advance: advance,
                 paymentMethod: paymentMethod,
                 mvolaName: mvolaName,
@@ -993,6 +1114,7 @@
             currentBasket = [];
             document.getElementById('orderClient').value = '';
             document.getElementById('orderAdvance').value = '';
+            document.getElementById('orderDiscount').value = '';
             document.getElementById('paymentMethod').value = 'Cash';
             document.getElementById('mvolaName').value = '';
             document.getElementById('editingSaleId').value = '';
@@ -1045,10 +1167,16 @@
         }
 
         function calcManualBalance() {
-            let total = manualBasket.reduce((sum, i) => sum + i.total, 0);
+            let rawTotal = manualBasket.reduce((sum, i) => sum + i.total, 0);
+            let discount = parseFloat(document.getElementById('manualDiscount').value) || 0;
+            let netTotal = Math.max(0, rawTotal - discount);
             let adv = parseFloat(document.getElementById('manualAdvance').value) || 0;
+            
+            let netEl = document.getElementById('manualNetTotal');
+            if (netEl) netEl.innerText = netTotal.toLocaleString() + ' Ar';
+
             let balElement = document.getElementById('manualBalance');
-            if (balElement) balElement.innerText = 'Reste: ' + (total - adv).toLocaleString() + ' Ar';
+            if (balElement) balElement.innerText = 'Reste: ' + (netTotal - adv).toLocaleString() + ' Ar';
         }
 
         function updateManualSalesCheckboxList() {
@@ -1076,8 +1204,21 @@
                 return;
             }
 
-            const data = readLocalData();
-            const clientSales = data.filter(op => op.type === 'SALE' && op.client && op.client.toLowerCase().includes(clientName));
+            const manualScope = document.getElementById('manualScopeSelect')?.value || 'all';
+            let dataToSearch = readLocalData();
+            if (manualScope === 'period') {
+                const startDate = document.getElementById('journalStartDate')?.value;
+                const endDate = document.getElementById('journalEndDate')?.value;
+                if (startDate || endDate) {
+                    dataToSearch = dataToSearch.filter(op => {
+                        if (startDate && op.date < startDate) return false;
+                        if (endDate && op.date > endDate) return false;
+                        return true;
+                    });
+                }
+            }
+
+            const clientSales = dataToSearch.filter(op => op.type === 'SALE' && op.client && op.client.toLowerCase().includes(clientName));
 
             if (clientSales.length === 0) {
                 container.style.display = 'none';
@@ -1179,11 +1320,13 @@
             let manualDateInput = document.getElementById('manualDate');
             const dateStr = (manualDateInput && manualDateInput.value) ? manualDateInput.value : getWorkingDate();
             
-            const total = manualBasket.reduce((sum, i) => sum + i.total, 0);
+            const rawTotal = manualBasket.reduce((sum, i) => sum + i.total, 0);
+            const discount = parseFloat(document.getElementById('manualDiscount').value) || 0;
+            const total = Math.max(0, rawTotal - discount);
             const advance = parseFloat(document.getElementById('manualAdvance').value) || 0;
 
             if (shouldSave) {
-                lastManualInvoiceForPrint = { client, dateStr, manualBasket: [...manualBasket], total, advance, paymentMethod, mvolaName };
+                lastManualInvoiceForPrint = { client, dateStr, manualBasket: [...manualBasket], total, advance, paymentMethod, mvolaName, rawTotal, discount };
                 if (selectedManualSaleIds.length > 0) {
                     if (!confirm("Attention : L'enregistrement d'une facture regroupée va SUPPRIMER les anciennes ventes individuelles pour éviter les doublons dans la caisse. Continuer ?")) return;
                     
@@ -1201,6 +1344,8 @@
                     client,
                     items: [...manualBasket],
                     total: total,
+                    rawTotal: rawTotal,
+                    discount: discount,
                     advance: advance,
                     paymentMethod: paymentMethod,
                     mvolaName: mvolaName,
@@ -1216,7 +1361,7 @@
 
             if (shouldPrint) {
                 // Impression
-                printDirectInvoice(client, dateStr, manualBasket, total, advance, paymentMethod, mvolaName);
+                printDirectInvoice(client, dateStr, manualBasket, total, advance, paymentMethod, mvolaName, rawTotal, discount);
             }
 
             if (shouldSave) {
@@ -1224,6 +1369,7 @@
                 selectedManualSaleIds = [];
                 document.getElementById('manualClient').value = 'Client Passant';
                 document.getElementById('manualAdvance').value = '';
+                document.getElementById('manualDiscount').value = '';
                 document.getElementById('manualPaymentMethod').value = 'Cash';
                 document.getElementById('manualMvolaName').value = '';
                 toggleManualMvolaField();
@@ -1237,7 +1383,7 @@
             }
         }
 
-        function printDirectInvoice(client, dateStr, items, total, advance, paymentMethod, mvolaName) {
+        function printDirectInvoice(client, dateStr, items, total, advance, paymentMethod, mvolaName, rawTotal = null, discount = 0) {
             let itemsHtml = items.map(i => {
                 const uPrice = i.price || (i.total / i.qty);
                 let dateLabel = i.originalDate ? `<br><span style="font-size: 0.8em; color: #666;">Cmd: ${i.originalDate}</span>` : '';
@@ -1248,6 +1394,8 @@
             if (pInfo === 'Mvola' && mvolaName) pInfo += ` (${mvolaName})`;
 
             const paymentDate = new Date().toLocaleDateString('en-CA');
+            const discountHtml = discount > 0 ? `<p class="mb-1 text-muted"><b>Remise :</b> -${discount.toLocaleString()} Ar</p>` : '';
+            const rawTotalHtml = rawTotal && discount > 0 ? `<p class="mb-1"><b>Total Brut :</b> ${rawTotal.toLocaleString()} Ar</p>` : '';
 
             const stubHtml = `
         <div style="max-width: 450px; margin: 20px auto; color: black; font-family: monospace;">
@@ -1264,16 +1412,30 @@
                 <tbody>${itemsHtml}</tbody>
             </table>
             <div class="mt-3 text-end">
-                <p class="mb-1"><b>TOTAL :</b> ${total.toLocaleString()} Ar</p>
+                ${rawTotalHtml}
+                ${discountHtml}
+                <p class="mb-1"><b>TOTAL NET :</b> ${total.toLocaleString()} Ar</p>
                 <p class="mb-1"><b>Avance :</b> ${advance.toLocaleString()} Ar</p>
                 <h5 class="mt-2 pt-2 border-top fw-bold">RESTE : ${(total - advance).toLocaleString()} Ar</h5>
             </div>
+            <div id="invoiceQrCode" class="d-flex justify-content-center my-3"></div>
             <div class="mt-4 pt-2 text-center" style="border-top: 1px dashed #000;">
                 <p class="small mb-0">Signature :</p>
                 <p class="fw-bold">Emo print</p>
             </div>
         </div>`;
             document.getElementById('invoiceStub').innerHTML = stubHtml;
+            setTimeout(() => {
+                const qrContainer = document.getElementById("invoiceQrCode");
+                if (qrContainer && typeof QRCode !== 'undefined') {
+                    qrContainer.innerHTML = '';
+                    new QRCode(qrContainer, {
+                        text: `EMOPRINT|DATE:${dateStr}|CLIENT:${client}|TOTAL:${total}Ar|RESTE:${total-advance}Ar`,
+                        width: 90,
+                        height: 90
+                    });
+                }
+            }, 30);
             window.print();
         }
 
@@ -1582,7 +1744,9 @@
             if (pInfo === 'Mvola' && order.mvolaName) pInfo += ` (${order.mvolaName})`;
 
             const paymentDate = order.debtPaymentDate || order.date;
-            
+            const discountHtml = order.discount > 0 ? `<p class="mb-1 text-muted"><b>Remise :</b> -${order.discount.toLocaleString()} Ar</p>` : '';
+            const rawTotalHtml = order.rawTotal && order.discount > 0 ? `<p class="mb-1"><b>Total Brut :</b> ${order.rawTotal.toLocaleString()} Ar</p>` : '';
+
             const stubHtml = `
         <div style="max-width: 450px; margin: 20px auto; color: black; font-family: monospace;">
             <h3 class="mb-0 text-center fw-bold">DTF PRO EMOPRINT</h3>
@@ -1598,16 +1762,30 @@
                 <tbody>${itemsHtml}</tbody>
             </table>
             <div class="mt-3 text-end">
-                <p class="mb-1"><b>TOTAL :</b> ${order.total.toLocaleString()} Ar</p>
+                ${rawTotalHtml}
+                ${discountHtml}
+                <p class="mb-1"><b>TOTAL NET :</b> ${order.total.toLocaleString()} Ar</p>
                 <p class="mb-1"><b>Avance :</b> ${order.advance.toLocaleString()} Ar</p>
                 <h5 class="mt-2 pt-2 border-top fw-bold">RESTE : ${(order.total - order.advance).toLocaleString()} Ar</h5>
             </div>
+            <div id="invoiceQrCode" class="d-flex justify-content-center my-3"></div>
             <div class="mt-4 pt-2 text-center" style="border-top: 1px dashed #000;">
                 <p class="small mb-0">Signature :</p>
                 <p class="fw-bold">Emo print</p>
             </div>
         </div>`;
             document.getElementById('invoiceStub').innerHTML = stubHtml;
+            setTimeout(() => {
+                const qrContainer = document.getElementById("invoiceQrCode");
+                if (qrContainer && typeof QRCode !== 'undefined') {
+                    qrContainer.innerHTML = '';
+                    new QRCode(qrContainer, {
+                        text: `EMOPRINT|DATE:${order.date}|CLIENT:${order.client}|TOTAL:${order.total}Ar|RESTE:${order.total-order.advance}Ar`,
+                        width: 90,
+                        height: 90
+                    });
+                }
+            }, 30);
             window.print();
         }
 
@@ -1660,14 +1838,241 @@
             let nextDayStr = `${nextDay.getFullYear()}-${String(nextDay.getMonth()+1).padStart(2,'0')}-${String(nextDay.getDate()).padStart(2,'0')}`;
 
             document.getElementById('workingDateInput').value = nextDayStr;
-            document.getElementById('journalFilterDate').value = nextDayStr;
+            const newMonthStr = nextDayStr.substring(0, 7);
+            filterBySelectedMonth(newMonthStr);
+        }
+
+        function formatMonthFr(yearMonthStr) {
+            if (!yearMonthStr || !yearMonthStr.includes('-')) return yearMonthStr || '';
+            const parts = yearMonthStr.split('-');
+            const y = parts[0];
+            const m = parts[1];
+            const monthsFr = [
+                'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+            ];
+            const monthIndex = parseInt(m, 10) - 1;
+            if (monthIndex >= 0 && monthIndex < 12) {
+                return `${monthsFr[monthIndex]} ${y}`;
+            }
+            return yearMonthStr;
+        }
+
+        function filterBySelectedMonth(yearMonthStr) {
+            if (!yearMonthStr) return;
+            const parts = yearMonthStr.split('-').map(Number);
+            const y = parts[0];
+            const m = parts[1];
+            const firstDay = `${y}-${String(m).padStart(2, '0')}-01`;
+            const lastDayNum = new Date(y, m, 0).getDate();
+            const lastDay = `${y}-${String(m).padStart(2, '0')}-${String(lastDayNum).padStart(2, '0')}`;
+
+            const startEl = document.getElementById('journalStartDate');
+            const endEl = document.getElementById('journalEndDate');
+            const monthInputEl = document.getElementById('journalMonthInput');
+
+            if (startEl) startEl.value = firstDay;
+            if (endEl) endEl.value = lastDay;
+            if (monthInputEl) monthInputEl.value = yearMonthStr;
+
             renderAll();
+        }
+
+        function filterCurrentMonth() {
+            const d = new Date();
+            const currentMonthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            filterBySelectedMonth(currentMonthStr);
+        }
+
+        function onCustomDateChange() {
+            const monthInputEl = document.getElementById('journalMonthInput');
+            if (monthInputEl) monthInputEl.value = '';
+            renderAll();
+        }
+
+        function syncWorkingDateToFilter(val) {
+            const startEl = document.getElementById('journalStartDate');
+            const endEl = document.getElementById('journalEndDate');
+            const monthInputEl = document.getElementById('journalMonthInput');
+            if (startEl) startEl.value = val;
+            if (endEl) endEl.value = val;
+            if (monthInputEl) monthInputEl.value = '';
+            renderAll();
+        }
+
+        function resetDateFilter() {
+            const startEl = document.getElementById('journalStartDate');
+            const endEl = document.getElementById('journalEndDate');
+            const monthInputEl = document.getElementById('journalMonthInput');
+            if (startEl) startEl.value = '';
+            if (endEl) endEl.value = '';
+            if (monthInputEl) monthInputEl.value = '';
+            renderAll();
+        }
+
+        function exportToCSV() {
+            const data = readLocalData();
+            const startDate = document.getElementById('journalStartDate')?.value;
+            const endDate = document.getElementById('journalEndDate')?.value;
+
+            let filtered = data;
+            if (startDate || endDate) {
+                filtered = data.filter(op => {
+                    if (startDate && op.date < startDate) return false;
+                    if (endDate && op.date > endDate) return false;
+                    return true;
+                });
+            }
+
+            if (filtered.length === 0) {
+                alert("Aucune donnée à exporter pour la période sélectionnée.");
+                return;
+            }
+
+            let csvContent = "\uFEFF"; // UTF-8 BOM pour compatibilité Excel
+            csvContent += "ID;Date;Type;Client / Motif;Produits / Détails;Total Brut (Ar);Remise (Ar);Net Payé (Ar);Avance (Ar);Reste (Ar);Moyen de Paiement;Compte Mvola\n";
+
+            filtered.forEach(op => {
+                const typeStr = op.type === 'SALE' ? 'Vente' : 'Dépense';
+                const clientOrDesc = (op.type === 'SALE' ? op.client : op.desc) || '';
+                let itemsStr = '';
+                if (op.items && Array.isArray(op.items)) {
+                    itemsStr = op.items.map(i => `${i.qty}${i.type.toUpperCase().includes('DTF') ? 'm' : ''} ${i.type}`).join(' | ');
+                }
+                const rawTot = op.rawTotal || op.total || 0;
+                const disc = op.discount || 0;
+                const netTot = op.total || 0;
+                const adv = op.advance || 0;
+                const reste = op.type === 'SALE' ? Math.max(0, netTot - adv) : 0;
+                const method = op.paymentMethod || 'Cash';
+                const mvola = op.mvolaName || '';
+
+                const row = [
+                    op.id,
+                    op.date,
+                    typeStr,
+                    `"${clientOrDesc.replace(/"/g, '""')}"`,
+                    `"${itemsStr.replace(/"/g, '""')}"`,
+                    rawTot,
+                    disc,
+                    netTot,
+                    adv,
+                    reste,
+                    `"${method}"`,
+                    `"${mvola.replace(/"/g, '""')}"`
+                ];
+
+                csvContent += row.join(";") + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const periodStr = startDate && endDate ? `${startDate}_au_${endDate}` : (startDate || endDate || 'complet');
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Journal_Caisse_EMOPRINT_${periodStr}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        let salesVsExpChartInstance = null;
+        let expCategoriesChartInstance = null;
+
+        function renderCharts(data) {
+            if (typeof Chart === 'undefined') return;
+
+            const canvasLine = document.getElementById('chartSalesVsExp');
+            const canvasPie = document.getElementById('chartExpCategories');
+            if (!canvasLine || !canvasPie) return;
+
+            const dailyMap = {};
+            const expCatMap = {};
+
+            data.forEach(op => {
+                const d = op.date;
+                if (!d) return;
+                if (!dailyMap[d]) dailyMap[d] = { sales: 0, exp: 0 };
+
+                if (op.type === 'SALE') {
+                    dailyMap[d].sales += (op.total || 0);
+                } else if (op.type === 'EXPENSE') {
+                    dailyMap[d].exp += (op.total || 0);
+                    const cat = (op.desc || 'AUTRE').trim().toUpperCase();
+                    expCatMap[cat] = (expCatMap[cat] || 0) + (op.total || 0);
+                }
+            });
+
+            const sortedDates = Object.keys(dailyMap).sort();
+            const salesData = sortedDates.map(d => dailyMap[d].sales);
+            const expData = sortedDates.map(d => dailyMap[d].exp);
+
+            if (salesVsExpChartInstance) salesVsExpChartInstance.destroy();
+            salesVsExpChartInstance = new Chart(canvasLine, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [
+                        {
+                            label: 'Ventes Nettes (Ar)',
+                            data: salesData,
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Dépenses (Ar)',
+                            data: expData,
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            const catLabels = Object.keys(expCatMap);
+            const catValues = Object.values(expCatMap);
+            const backgroundColors = [
+                '#dc3545', '#fd7e14', '#ffc107', '#198754', '#20c997', '#0dcaf0', '#0d6efd', '#6610f2', '#6f42c1', '#d63384'
+            ];
+
+            if (expCategoriesChartInstance) expCategoriesChartInstance.destroy();
+            expCategoriesChartInstance = new Chart(canvasPie, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels.length > 0 ? catLabels : ['Aucune dépense'],
+                    datasets: [{
+                        data: catValues.length > 0 ? catValues : [1],
+                        backgroundColor: catValues.length > 0 ? backgroundColors.slice(0, catLabels.length) : ['#e9ecef']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
         }
 
         function renderAll() {
             const data = readLocalData();
-            const filterInput = document.getElementById('journalFilterDate');
-            const filterDate = filterInput && filterInput.value ? filterInput.value : null;
+            const startDate = document.getElementById('journalStartDate')?.value;
+            const endDate = document.getElementById('journalEndDate')?.value;
 
             const clientsSet = new Set();
             data.forEach(op => {
@@ -1683,7 +2088,11 @@
                 });
             }
 
-            const filteredData = filterDate ? data.filter(op => op.date === filterDate) : data;
+            const filteredData = data.filter(op => {
+                if (startDate && op.date < startDate) return false;
+                if (endDate && op.date > endDate) return false;
+                return true;
+            });
 
             let totalSales = 0, totalExp = 0, globalAdvance = 0;
 
@@ -1695,45 +2104,51 @@
             if (manualSaleSelect) manualSaleSelect.innerHTML = '<option value="">-- Sélectionner une vente pour copier --</option>';
             let hasDebts = false;
             
-            data.forEach(op => {
+            filteredData.forEach(op => {
                 if (op.type === 'EXPENSE') {
-                    if (!filterDate || op.date === filterDate) {
-                        totalExp += op.total;
-                    }
+                    totalExp += op.total;
                 } else if (op.type === 'SALE') {
                     let dtfTotal = op.items ? op.items.filter(i => i.type.toUpperCase().includes('DTF')).reduce((sum, i) => sum + i.total, 0) : 0;
-                    
-                    if (!filterDate || op.date === filterDate) {
-                        totalSales += dtfTotal;
-                    }
+                    totalSales += dtfTotal;
 
-                    // Calcul de l'encaissé réel reçu à cette date
+                    // Calcul de l'encaissé réel reçu à cette période
                     let dtfRatio = op.total > 0 ? (dtfTotal / op.total) : 1;
                     if (op.payments && op.payments.length > 0) {
                         op.payments.forEach(p => {
-                            if (!filterDate || p.date === filterDate) {
+                            if ((!startDate || p.date >= startDate) && (!endDate || p.date <= endDate)) {
                                 globalAdvance += p.amount * dtfRatio;
                             }
                         });
                     } else {
                         // Rétrocompatibilité
-                        if (!filterDate || op.date === filterDate) {
-                            let dtfAdvance = Math.min(op.advance, dtfTotal);
-                            globalAdvance += dtfAdvance;
-                        }
+                        let dtfAdvance = Math.min(op.advance, dtfTotal);
+                        globalAdvance += dtfAdvance;
                     }
                 }
             });
 
-            // --- LISTE DES DETTES (Toujours Global pour permettre le remboursement) ---
+            // --- LISTE DES DETTES ET FACTURE MANUELLE ---
             const debtSearch = document.getElementById('debtSearchInput') ? document.getElementById('debtSearchInput').value.toLowerCase() : '';
+            const debtScope = document.getElementById('debtScopeSelect')?.value || 'period';
+            const manualScope = document.getElementById('manualScopeSelect')?.value || 'all';
+
+            const debtDataSource = (debtScope === 'period') ? filteredData : data;
+            const manualDataSource = (manualScope === 'period') ? filteredData : data;
+
+            if (manualSaleSelect) {
+                manualSaleSelect.innerHTML = '<option value="">-- Sélectionner une vente pour copier --</option>';
+                manualDataSource.forEach(op => {
+                    if (op.type === 'SALE') {
+                        const reste = Math.round(op.total - op.advance);
+                        const statusTag = reste > 0 ? ` [Non payé: ${reste.toLocaleString()} Ar]` : ` [PAYÉ]`;
+                        manualSaleSelect.innerHTML += `<option value="${op.id}">${op.client} - Total: ${op.total.toLocaleString()} Ar (${op.date})${statusTag}</option>`;
+                    }
+                });
+            }
 
             let debtOps = [];
-            data.forEach(op => {
+            debtDataSource.forEach(op => {
                 if (op.type === 'SALE') {
-                    if (manualSaleSelect) {
-                        manualSaleSelect.innerHTML += `<option value="${op.id}">${op.client} - Total: ${op.total.toLocaleString()} Ar (${op.date})</option>`;
-                    }
                     const reste = Math.round(op.total - op.advance);
                     if (reste > 0) {
                         // Filtre par recherche client si saisie
@@ -1855,19 +2270,48 @@
             }
 
             const dailySummaryList = document.getElementById('dailySummaryList');
+            const dailySummaryFoot = document.getElementById('dailySummaryFoot');
+            const countBadge = document.getElementById('caisseJourCountBadge');
+            const caisseJourScope = document.getElementById('caisseJourScopeSelect')?.value || 'period';
+            const caisseJourSearch = document.getElementById('caisseJourSearchInput')?.value.trim().toLowerCase() || '';
+
             if (dailySummaryList) {
                 dailySummaryList.innerHTML = '';
                 const summary = {};
                 
-                // Collecter toutes les dates de vente, dépenses ou de paiement
+                // Déterminer la source de données selon le périmètre choisi
+                let dataForDays = filteredData;
+                if (caisseJourScope === 'all' || caisseJourScope === 'last30') {
+                    dataForDays = data;
+                }
+
                 let allDates = new Set();
-                data.forEach(o => {
-                    allDates.add(o.date);
+                dataForDays.forEach(o => {
+                    if (o.date) allDates.add(o.date);
                     if (o.type === 'SALE' && o.payments) {
-                        o.payments.forEach(p => allDates.add(p.date));
+                        o.payments.forEach(p => {
+                            if (caisseJourScope === 'all' || caisseJourScope === 'last30' || ((!startDate || p.date >= startDate) && (!endDate || p.date <= endDate))) {
+                                allDates.add(p.date);
+                            }
+                        });
                     }
                 });
-                const sortedDates = [...allDates].sort();
+
+                let sortedDates = [...allDates].sort().reverse();
+
+                // Si périmètre = 30 derniers jours, conserver les 30 premières dates récents
+                if (caisseJourScope === 'last30') {
+                    sortedDates = sortedDates.slice(0, 30);
+                }
+
+                // Filtrer par terme de recherche de date si renseigné
+                if (caisseJourSearch) {
+                    sortedDates = sortedDates.filter(d => d.toLowerCase().includes(caisseJourSearch));
+                }
+
+                if (countBadge) countBadge.innerText = `${sortedDates.length} jour${sortedDates.length > 1 ? 's' : ''}`;
+
+                let totFilm = 0, totSalesDTF = 0, totSalesOther = 0, totAdvances = 0, totExpenses = 0;
 
                 sortedDates.forEach(date => {
                     summary[date] = { sales: 0, advances: 0, expenses: 0, film: 0, salesDTF: 0, salesOther: 0 };
@@ -1887,7 +2331,6 @@
                                 });
                             }
                             
-                            // Si la commande a été passée ce jour-là
                             if (op.date === date) {
                                 summary[date].film += filmQty;
                                 summary[date].salesDTF += dtfTotal;
@@ -1895,7 +2338,6 @@
                                 summary[date].sales += dtfTotal;
                             }
 
-                            // Les avances / règlements affectés à ce jour-là
                             let dtfRatio = op.total > 0 ? (dtfTotal / op.total) : 1;
                             if (op.payments && op.payments.length > 0) {
                                 op.payments.forEach(p => {
@@ -1915,11 +2357,93 @@
                         }
                     });
                 });
-                Object.keys(summary).sort().reverse().forEach(date => {
+
+                sortedDates.forEach(date => {
                     const s = summary[date];
                     const net = s.advances - s.expenses;
-                    dailySummaryList.innerHTML += `<tr><td>${date}</td><td class="fw-bold text-primary">${s.film.toFixed(2)} m</td><td>${Math.round(s.salesDTF).toLocaleString()} Ar</td><td>${Math.round(s.salesOther).toLocaleString()} Ar</td><td>${Math.round(s.advances).toLocaleString()} Ar</td><td>${s.expenses.toLocaleString()} Ar</td><td class="fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${Math.round(net).toLocaleString()} Ar</td><td class="text-center no-print"><button class="btn btn-sm btn-light border text-danger py-0 px-2" onclick="deleteDailyCaisse('${date}')" title="Supprimer la caisse de ce jour">×</button></td></tr>`;
+                    totFilm += s.film;
+                    totSalesDTF += s.salesDTF;
+                    totSalesOther += s.salesOther;
+                    totAdvances += s.advances;
+                    totExpenses += s.expenses;
+
+                    dailySummaryList.innerHTML += `
+                    <tr style="cursor: pointer;" onclick="syncWorkingDateToFilter('${date}')" title="Cliquer pour charger le détail des ventes et dépenses du ${date}">
+                        <td><b class="text-primary"><i class="bi bi-calendar-event me-1"></i>${date}</b></td>
+                        <td class="fw-bold text-primary">${s.film.toFixed(2)} m</td>
+                        <td>${Math.round(s.salesDTF).toLocaleString()} Ar</td>
+                        <td>${Math.round(s.salesOther).toLocaleString()} Ar</td>
+                        <td>${Math.round(s.advances).toLocaleString()} Ar</td>
+                        <td>${s.expenses.toLocaleString()} Ar</td>
+                        <td class="fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${Math.round(net).toLocaleString()} Ar</td>
+                        <td class="text-center no-print" onclick="event.stopPropagation();">
+                            <button class="btn btn-sm btn-light border text-danger py-0 px-2" onclick="deleteDailyCaisse('${date}')" title="Supprimer la caisse de ce jour">×</button>
+                        </td>
+                    </tr>`;
                 });
+
+                if (sortedDates.length === 0) {
+                    dailySummaryList.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">Aucune donnée de caisse trouvée</td></tr>';
+                    if (dailySummaryFoot) dailySummaryFoot.innerHTML = '';
+                } else if (dailySummaryFoot) {
+                    const totNet = totAdvances - totExpenses;
+                    dailySummaryFoot.innerHTML = `
+                    <tr class="table-dark fw-bold border-top border-2 border-white">
+                        <td>TOTAL PÉRIODE</td>
+                        <td class="text-primary">${totFilm.toFixed(2)} m</td>
+                        <td>${Math.round(totSalesDTF).toLocaleString()} Ar</td>
+                        <td>${Math.round(totSalesOther).toLocaleString()} Ar</td>
+                        <td>${Math.round(totAdvances).toLocaleString()} Ar</td>
+                        <td>${totExpenses.toLocaleString()} Ar</td>
+                        <td class="${totNet >= 0 ? 'text-success' : 'text-danger'}">${Math.round(totNet).toLocaleString()} Ar</td>
+                        <td></td>
+                    </tr>`;
+                }
+            }
+
+            // Mise à jour du bandeau et des titres des cartes de statistiques
+            const monthInputVal = document.getElementById('journalMonthInput')?.value;
+            const nowD = new Date();
+            const curMonthStr = `${nowD.getFullYear()}-${String(nowD.getMonth()+1).padStart(2,'0')}`;
+
+            const bannerEl = document.getElementById('monthViewBanner');
+            const bannerTextEl = document.getElementById('monthViewBannerText');
+            const salesLabelEl = document.getElementById('statSalesLabel');
+            const expLabelEl = document.getElementById('statExpLabel');
+            const netLabelEl = document.getElementById('statNetLabel');
+
+            if (monthInputVal) {
+                const monthFr = formatMonthFr(monthInputVal);
+                if (monthInputVal === curMonthStr) {
+                    if (bannerEl) bannerEl.style.display = 'none';
+                    if (salesLabelEl) salesLabelEl.innerText = `Ventes (${monthFr})`;
+                    if (expLabelEl) expLabelEl.innerText = `Dépenses (${monthFr})`;
+                    if (netLabelEl) netLabelEl.innerText = `Net Encaissé (${monthFr})`;
+                } else {
+                    if (bannerEl) {
+                        bannerEl.style.display = 'flex';
+                        if (bannerTextEl) bannerTextEl.innerHTML = `Consultation de la caisse du mois : <b>${monthFr}</b> (${monthInputVal})`;
+                    }
+                    if (salesLabelEl) salesLabelEl.innerText = `Ventes (${monthFr})`;
+                    if (expLabelEl) expLabelEl.innerText = `Dépenses (${monthFr})`;
+                    if (netLabelEl) netLabelEl.innerText = `Net Encaissé (${monthFr})`;
+                }
+            } else if (startDate || endDate) {
+                if (bannerEl) {
+                    bannerEl.style.display = 'flex';
+                    if (bannerTextEl) bannerTextEl.innerHTML = `Période du <b>${startDate || 'début'}</b> au <b>${endDate || 'fin'}</b>`;
+                }
+                if (salesLabelEl) salesLabelEl.innerText = `Ventes (Période)`;
+                if (expLabelEl) expLabelEl.innerText = `Dépenses (Période)`;
+                if (netLabelEl) netLabelEl.innerText = `Net Encaissé (Période)`;
+            } else {
+                if (bannerEl) {
+                    bannerEl.style.display = 'flex';
+                    if (bannerTextEl) bannerTextEl.innerHTML = `Affichage de <b>Toutes les opérations enregistrées</b> (Sans filtre)`;
+                }
+                if (salesLabelEl) salesLabelEl.innerText = `Ventes (Historique)`;
+                if (expLabelEl) expLabelEl.innerText = `Dépenses (Historique)`;
+                if (netLabelEl) netLabelEl.innerText = `Net Encaissé (Historique)`;
             }
 
             const monthlySummaryList = document.getElementById('monthlySummaryList');
@@ -1952,12 +2476,42 @@
                         monthlyData[month].expenses += op.total;
                     }
                 });
+
+                // Inclure toujours le mois en cours s'il n'a pas encore de données
+                if (!monthlyData[curMonthStr]) {
+                    monthlyData[curMonthStr] = { sales: 0, advances: 0, expenses: 0 };
+                }
+
                 Object.keys(monthlyData).sort().reverse().forEach(month => {
                     const s = monthlyData[month];
                     const net = s.advances - s.expenses;
-                    monthlySummaryList.innerHTML += `<tr><td><b class="text-uppercase">${month}</b></td><td class="text-end fw-bold">${Math.round(s.sales).toLocaleString()} Ar</td><td class="text-end fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${Math.round(net).toLocaleString()} Ar</td></tr>`;
+                    const monthFr = formatMonthFr(month);
+                    const isCurrent = (month === curMonthStr);
+                    const isSelected = (month === monthInputVal);
+
+                    const badgeCurrent = isCurrent ? `<span class="badge bg-success ms-1" style="font-size:0.65rem">Mois Actuel</span>` : '';
+                    const rowClass = isSelected ? `table-primary` : ``;
+
+                    monthlySummaryList.innerHTML += `
+                    <tr class="${rowClass}" style="cursor: pointer;" onclick="filterBySelectedMonth('${month}')" title="Cliquer pour consulter la caisse de ${monthFr}">
+                        <td>
+                            <b class="text-uppercase">${monthFr}</b>
+                            <small class="text-muted ms-1">(${month})</small>
+                            ${badgeCurrent}
+                        </td>
+                        <td class="text-end fw-bold">${Math.round(s.sales).toLocaleString()} Ar</td>
+                        <td class="text-end text-danger">${Math.round(s.expenses).toLocaleString()} Ar</td>
+                        <td class="text-end fw-bold ${net >= 0 ? 'text-success' : 'text-danger'}">${Math.round(net).toLocaleString()} Ar</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm ${isSelected ? 'btn-primary' : 'btn-outline-primary'} py-0 px-2 fw-bold" onclick="event.stopPropagation(); filterBySelectedMonth('${month}')">
+                                <i class="bi bi-eye-fill me-1"></i> ${isSelected ? 'Actif' : 'Consulter'}
+                            </button>
+                        </td>
+                    </tr>`;
                 });
             }
+
+            renderCharts(filteredData);
 
             const histList = document.getElementById('historyList');
             if (histList) {
@@ -1965,12 +2519,10 @@
                 const clientSearch = document.getElementById('globalClientSearch') ? document.getElementById('globalClientSearch').value.toLowerCase() : '';
                 const methodSearch = document.getElementById('globalMethodSearch') ? document.getElementById('globalMethodSearch').value : '';
 
-                // Si recherche client active, on ignore le filtre date pour trouver tout l'historique du client
-                let dataToDisplay = data;
+                // Afficher uniquement les opérations de la date / période active sélectionnée
+                let dataToDisplay = filteredData;
                 if (clientSearch) {
-                    dataToDisplay = data.filter(op => op.client && op.client.toLowerCase().includes(clientSearch));
-                } else if (filterDate) {
-                    dataToDisplay = data.filter(op => op.date === filterDate);
+                    dataToDisplay = dataToDisplay.filter(op => op.client && op.client.toLowerCase().includes(clientSearch));
                 }
 
                 if (methodSearch) {
@@ -1998,7 +2550,7 @@
                     histList.innerHTML += html;
                 });
                 if (dataToDisplay.length === 0) {
-                    histList.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Aucune opération trouvée</td></tr>`;
+                    histList.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Aucune opération pour la date sélectionnée</td></tr>`;
                 }
             }
         }
@@ -2042,10 +2594,18 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const d = new Date();
             const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            
             const dateInput = document.getElementById('workingDateInput');
             if (dateInput) dateInput.value = today;
-            const filterInput = document.getElementById('journalFilterDate');
-            if (filterInput) filterInput.value = today;
+            
+            // Filtre de date par défaut au moment où l'utilisateur utilise l'application (date du jour)
+            const startDateInput = document.getElementById('journalStartDate');
+            if (startDateInput) startDateInput.value = today;
+            const endDateInput = document.getElementById('journalEndDate');
+            if (endDateInput) endDateInput.value = today;
+            const monthInput = document.getElementById('journalMonthInput');
+            if (monthInput) monthInput.value = '';
+
             const manualDateInput = document.getElementById('manualDate');
             if (manualDateInput) manualDateInput.value = today;
             const debtPaymentDateInput = document.getElementById('debtPaymentDate');
